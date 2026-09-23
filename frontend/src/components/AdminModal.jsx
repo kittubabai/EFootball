@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, Lock, ShieldCheck, Shuffle, RotateCcw, UserPlus, Trash2, AlertCircle, CheckCircle2, Check, Clock, Eye, Target, Trophy, Flame, Edit2, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Lock, ShieldCheck, Shuffle, RotateCcw, UserPlus, Trash2, AlertCircle, CheckCircle2, Check, Clock, Eye, Target, Trophy, Flame, Edit2, RefreshCw, Award, Download, Send, Share2, Sparkles, Medal, FileText } from 'lucide-react';
 
 export default function AdminModal({ 
   isOpen, 
@@ -10,13 +10,22 @@ export default function AdminModal({
   onLogout, 
   tournamentStatus, 
   players, 
+  bracketData,
   onRefresh 
 }) {
   const [pinInput, setPinInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState({ text: '', type: '' });
   const [viewScreenshot, setViewScreenshot] = useState(null);
-  const [adminTab, setAdminTab] = useState('players'); // 'players' | 'goals'
+  const [adminTab, setAdminTab] = useState('players'); // 'players' | 'goals' | 'certificates'
+  
+  // Player Edit State
+  const [editPlayerForm, setEditPlayerForm] = useState(null);
+
+  // Certificates State
+  const [selectedCertPlayerId, setSelectedCertPlayerId] = useState('');
+  const [manualRank, setManualRank] = useState('');
+  const certCanvasRef = useRef(null);
   
   // Goals tracking state
   const [topScorers, setTopScorers] = useState([]);
@@ -52,8 +61,6 @@ export default function AdminModal({
       document.body.style.overflow = originalOverflow;
     };
   }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -123,6 +130,198 @@ export default function AdminModal({
     } catch (err) {
       setMsg({ text: err.message, type: 'error' });
     }
+  };
+
+  const handleUpdatePlayer = async (e) => {
+    e.preventDefault();
+    if (!editPlayerForm) return;
+
+    setLoading(true);
+    setMsg({ text: '', type: '' });
+    try {
+      const res = await fetch(`/api/admin/players/${editPlayerForm.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Pin': adminPin
+        },
+        body: JSON.stringify(editPlayerForm)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Failed to update player.');
+
+      setMsg({ text: data.message, type: 'success' });
+      setEditPlayerForm(null);
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      setMsg({ text: err.message, type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const drawCertificate = (player, rankText) => {
+    const canvas = certCanvasRef.current;
+    if (!canvas || !player) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const w = 1200;
+    const h = 800;
+    canvas.width = w;
+    canvas.height = h;
+
+    // Background Gradient (Royal Stadium Navy)
+    const bgGrad = ctx.createLinearGradient(0, 0, w, h);
+    bgGrad.addColorStop(0, '#070b15');
+    bgGrad.addColorStop(0.5, '#0c162e');
+    bgGrad.addColorStop(1, '#050811');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, w, h);
+
+    // Ornate Golden Borders
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 14;
+    ctx.strokeRect(30, 30, w - 60, h - 60);
+
+    ctx.strokeStyle = 'rgba(255, 190, 11, 0.45)';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(48, 48, w - 96, h - 96);
+
+    // Corner Accents
+    const drawCorner = (x, y) => {
+      ctx.fillStyle = '#ffbe0b';
+      ctx.fillRect(x - 8, y - 8, 16, 16);
+    };
+    drawCorner(48, 48);
+    drawCorner(w - 48, 48);
+    drawCorner(48, h - 48);
+    drawCorner(w - 48, h - 48);
+
+    // Header Emblem
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 22px Inter, sans-serif';
+    ctx.fillStyle = '#00ff87';
+    ctx.fillText('⚽ PANTIHAL eFOOTBALL CUP 2026 ⚽', w / 2, 105);
+
+    // Certificate Title
+    ctx.font = '900 48px Outfit, sans-serif';
+    ctx.fillStyle = '#ffbe0b';
+    ctx.shadowColor = 'rgba(255, 190, 11, 0.5)';
+    ctx.shadowBlur = 12;
+    ctx.fillText('CERTIFICATE OF EXCELLENCE', w / 2, 175);
+    ctx.shadowBlur = 0;
+
+    // Presentation text
+    ctx.font = 'italic 20px Inter, sans-serif';
+    ctx.fillStyle = '#a0b3cf';
+    ctx.fillText('THIS CERTIFICATE IS PROUDLY CONFERRED UPON', w / 2, 235);
+
+    // Player Name
+    ctx.font = '900 52px Outfit, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(player.name.toUpperCase(), w / 2, 310);
+
+    // Underline
+    ctx.strokeStyle = '#00e5ff';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(w / 2 - 220, 335);
+    ctx.lineTo(w / 2 + 220, 335);
+    ctx.stroke();
+
+    // Player ID & Team
+    ctx.font = 'bold 20px Inter, sans-serif';
+    ctx.fillStyle = '#00e5ff';
+    ctx.fillText(`eFootball ID: ${player.efootball_id}   •   Team: ${player.team_name || 'Dream Team'}`, w / 2, 375);
+
+    // Citation
+    ctx.font = '18px Inter, sans-serif';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText('In recognition of exemplary tactical gaming performance, skill, and securing', w / 2, 435);
+
+    // Rank Ribbon Box
+    ctx.fillStyle = 'rgba(255, 190, 11, 0.15)';
+    ctx.strokeStyle = '#ffbe0b';
+    ctx.lineWidth = 2;
+    ctx.fillRect(w / 2 - 320, 470, 640, 65);
+    ctx.strokeRect(w / 2 - 320, 470, 640, 65);
+
+    ctx.font = '900 28px Outfit, sans-serif';
+    ctx.fillStyle = '#ffbe0b';
+    ctx.fillText(rankText.toUpperCase(), w / 2, 513);
+
+    // Date & Context
+    ctx.font = '16px Inter, sans-serif';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('Held on 18th October 2026   •   Official 32-Player Knockout Championship', w / 2, 585);
+
+    // Signatures
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(140, 690);
+    ctx.lineTo(360, 690);
+    ctx.stroke();
+
+    ctx.font = 'italic bold 20px cursive, sans-serif';
+    ctx.fillStyle = '#00ff87';
+    ctx.fillText('Pantihal Committee', 250, 675);
+
+    ctx.font = '15px Inter, sans-serif';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('Tournament Director', 250, 715);
+
+    // Center Gold Seal
+    ctx.strokeStyle = '#ffbe0b';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(w / 2, 680, 45, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.font = 'bold 11px Inter, sans-serif';
+    ctx.fillStyle = '#ffbe0b';
+    ctx.fillText('★ VERIFIED ★', w / 2, 675);
+    ctx.fillText('OFFICIAL SEAL', w / 2, 692);
+
+    // Right Signature
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(w - 360, 690);
+    ctx.lineTo(w - 140, 690);
+    ctx.stroke();
+
+    ctx.font = 'italic bold 20px cursive, sans-serif';
+    ctx.fillStyle = '#00e5ff';
+    ctx.fillText('Match Operations', w - 250, 675);
+
+    ctx.font = '15px Inter, sans-serif';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('Chief Coordinator', w - 250, 715);
+  };
+
+  const handleDownloadCertificate = (playerName, rankText) => {
+    if (!certCanvasRef.current) return;
+    const url = certCanvasRef.current.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Certificate_${playerName.replace(/\s+/g, '_')}_${rankText.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
+    a.click();
+  };
+
+  const handleSendWhatsAppCertificate = (player, rankText) => {
+    if (!player) return;
+    const cleanWA = player.whatsapp.replace(/[^0-9]/g, '');
+    const phone = cleanWA.length === 10 ? `91${cleanWA}` : cleanWA;
+    const text = encodeURIComponent(
+      `*Pantihal eFootball Cup 2026 - Certificate of Excellence*\n\n` +
+      `Dear *${player.name}* (eFootball ID: ${player.efootball_id}),\n\n` +
+      `🎉 Congratulations! You have secured *${rankText}* in the Pantihal eFootball Cup!\n\n` +
+      `Your official tournament Certificate of Excellence has been generated and approved by the tournament committee.\n\n` +
+      `Please contact the organizers to collect your award and cash prize payout!`
+    );
+    window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
   };
 
   const handleGenerateGroups = async () => {
@@ -212,6 +411,43 @@ export default function AdminModal({
     }
   };
 
+  // Certificate player and rank selection
+  const currCertPlayer = players.find(p => String(p.id) === String(selectedCertPlayerId)) || players[0] || null;
+  const podium = bracketData?.finals?.podium || {};
+
+  let detectedRankTitle = 'Grand Champion (1st Place) 🥇';
+  let isEligibleTop4 = false;
+
+  if (currCertPlayer) {
+    if (podium.first && (podium.first.id === currCertPlayer.id || podium.first.name === currCertPlayer.name)) {
+      detectedRankTitle = 'Grand Champion (1st Place) 🥇';
+      isEligibleTop4 = true;
+    } else if (podium.second && (podium.second.id === currCertPlayer.id || podium.second.name === currCertPlayer.name)) {
+      detectedRankTitle = 'Runner-Up (2nd Place) 🥈';
+      isEligibleTop4 = true;
+    } else if (podium.third && (podium.third.id === currCertPlayer.id || podium.third.name === currCertPlayer.name)) {
+      detectedRankTitle = '3rd Position 🥉';
+      isEligibleTop4 = true;
+    } else if (podium.fourth && (podium.fourth.id === currCertPlayer.id || podium.fourth.name === currCertPlayer.name)) {
+      detectedRankTitle = '4th Position 🏅';
+      isEligibleTop4 = true;
+    }
+  }
+
+  const effectiveCertRank = manualRank || detectedRankTitle;
+
+  useEffect(() => {
+    if (adminTab === 'certificates' && currCertPlayer) {
+      // Short delay to ensure canvas DOM element is mounted
+      const timer = setTimeout(() => {
+        drawCertificate(currCertPlayer, effectiveCertRank);
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [adminTab, selectedCertPlayerId, manualRank, currCertPlayer, effectiveCertRank]);
+
+  if (!isOpen) return null;
+
   return (
     <div className="modal-overlay modal-backdrop" onClick={onClose}>
       <div className="modal-content glass-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '640px' }}>
@@ -281,7 +517,7 @@ export default function AdminModal({
             </div>
 
             {/* Admin Tabs */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', flexWrap: 'wrap' }}>
               <button 
                 type="button"
                 onClick={() => setAdminTab('players')}
@@ -299,13 +535,88 @@ export default function AdminModal({
                 style={{ padding: '6px 12px', fontSize: '0.8rem' }}
               >
                 <Target size={14} />
-                <span>⚽ Goals & Top Scorers</span>
+                <span>⚽ Goals Tracker</span>
+              </button>
+
+              <button 
+                type="button"
+                onClick={() => setAdminTab('certificates')}
+                className={`tab-btn ${adminTab === 'certificates' ? 'active' : ''}`}
+                style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+              >
+                <Award size={14} color="#ffbe0b" />
+                <span>📜 Top 4 Certificates</span>
               </button>
             </div>
 
             {/* TAB 1: Players & Payments */}
             {adminTab === 'players' && (
               <div>
+                {/* Inline Player Edit Form */}
+                {editPlayerForm && (
+                  <div style={{ background: 'rgba(0, 229, 255, 0.08)', border: '1px solid var(--accent-cyan)', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                      <strong style={{ fontSize: '0.88rem', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Edit2 size={14} /> Edit Player #{editPlayerForm.id} Details
+                      </strong>
+                      <button type="button" onClick={() => setEditPlayerForm(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>✕</button>
+                    </div>
+                    <form onSubmit={handleUpdatePlayer}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Name / IGN</label>
+                          <input 
+                            type="text" 
+                            value={editPlayerForm.name} 
+                            onChange={e => setEditPlayerForm({ ...editPlayerForm, name: e.target.value })} 
+                            className="form-input" 
+                            style={{ padding: '6px 8px', fontSize: '0.82rem' }} 
+                            required 
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>eFootball User ID</label>
+                          <input 
+                            type="text" 
+                            value={editPlayerForm.efootball_id} 
+                            onChange={e => setEditPlayerForm({ ...editPlayerForm, efootball_id: e.target.value })} 
+                            className="form-input" 
+                            style={{ padding: '6px 8px', fontSize: '0.82rem' }} 
+                            required 
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>WhatsApp Number</label>
+                          <input 
+                            type="text" 
+                            value={editPlayerForm.whatsapp} 
+                            onChange={e => setEditPlayerForm({ ...editPlayerForm, whatsapp: e.target.value })} 
+                            className="form-input" 
+                            style={{ padding: '6px 8px', fontSize: '0.82rem' }} 
+                            required 
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Dream Team Name</label>
+                          <input 
+                            type="text" 
+                            value={editPlayerForm.team_name} 
+                            onChange={e => setEditPlayerForm({ ...editPlayerForm, team_name: e.target.value })} 
+                            className="form-input" 
+                            style={{ padding: '6px 8px', fontSize: '0.82rem' }} 
+                          />
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        <button type="button" onClick={() => setEditPlayerForm(null)} className="btn btn-outline" style={{ padding: '4px 10px', fontSize: '0.76rem' }}>Cancel</button>
+                        <button type="submit" className="btn btn-primary" style={{ padding: '4px 12px', fontSize: '0.76rem' }} disabled={loading}>
+                          {loading ? 'Saving...' : 'Save Player Details'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
                 {/* Quick Actions */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '18px' }}>
                   <button 
@@ -375,6 +686,21 @@ export default function AdminModal({
                               <Check size={12} /> Verify ₹100
                             </button>
                           )}
+
+                          <button 
+                            onClick={() => setEditPlayerForm({
+                              id: p.id,
+                              name: p.name,
+                              efootball_id: p.efootball_id,
+                              whatsapp: p.whatsapp,
+                              team_name: p.team_name || ''
+                            })}
+                            className="btn btn-outline"
+                            style={{ padding: '3px 8px', fontSize: '0.72rem', borderColor: 'rgba(255,190,11,0.4)', color: 'var(--accent-gold)' }}
+                            title="Edit Player (Fix eFootball ID / Name / WA)"
+                          >
+                            <Edit2 size={12} /> Edit
+                          </button>
 
                           <button 
                             onClick={() => handleDeletePlayer(p.id, p.name)}
@@ -480,6 +806,140 @@ export default function AdminModal({
                       );
                     })
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: Certificates Generation (Top 4) */}
+            {adminTab === 'certificates' && (
+              <div>
+                <div style={{ marginBottom: '14px' }}>
+                  <h4 style={{ fontSize: '0.96rem', fontWeight: '800', color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Award size={18} color="#ffbe0b" />
+                    Top 4 Tournament Certificate Generator
+                  </h4>
+                  <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                    Verifies tournament placement from DB, renders a high-res certificate, and sends via WhatsApp.
+                  </p>
+                </div>
+
+                {/* Player & Rank Controls */}
+                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px', marginBottom: '14px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                    <div>
+                      <label style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Select Tournament Player</label>
+                      <select 
+                        value={selectedCertPlayerId || (players[0]?.id || '')} 
+                        onChange={e => {
+                          setSelectedCertPlayerId(e.target.value);
+                          setManualRank('');
+                        }}
+                        className="form-input"
+                        style={{ padding: '6px 10px', fontSize: '0.84rem' }}
+                      >
+                        {players.length === 0 && <option value="">No players registered yet</option>}
+                        {players.map(p => (
+                          <option key={p.id} value={p.id}>
+                            #{p.id} {p.name} ({p.efootball_id})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Tournament Placement / Award</label>
+                      <select 
+                        value={manualRank || detectedRankTitle} 
+                        onChange={e => setManualRank(e.target.value)}
+                        className="form-input"
+                        style={{ padding: '6px 10px', fontSize: '0.84rem' }}
+                      >
+                        <option value="Grand Champion (1st Place) 🥇">🥇 Grand Champion (1st Place)</option>
+                        <option value="Runner-Up (2nd Place) 🥈">🥈 Runner-Up (2nd Place)</option>
+                        <option value="3rd Position 🥉">🥉 3rd Position</option>
+                        <option value="4th Position 🏅">🏅 4th Position</option>
+                        <option value="⚽ Golden Boot (Top Goalscorer)">⚽ Golden Boot (Top Goalscorer)</option>
+                        <option value="Certificate of Participation">🎖️ Certificate of Participation</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Eligibility Status Banner */}
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between', 
+                    background: isEligibleTop4 ? 'rgba(0, 255, 135, 0.1)' : 'rgba(255, 190, 11, 0.1)', 
+                    border: `1px solid ${isEligibleTop4 ? 'rgba(0, 255, 135, 0.35)' : 'rgba(255, 190, 11, 0.35)'}`, 
+                    padding: '8px 12px', 
+                    borderRadius: '6px',
+                    flexWrap: 'wrap',
+                    gap: '6px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem' }}>
+                      {isEligibleTop4 ? <CheckCircle2 size={16} color="#00ff87" /> : <AlertCircle size={16} color="#ffbe0b" />}
+                      <span style={{ color: isEligibleTop4 ? 'var(--accent-green)' : 'var(--accent-gold)', fontWeight: '700' }}>
+                        {isEligibleTop4 
+                          ? `Eligible: Verified ${detectedRankTitle} in Official Finals!` 
+                          : tournamentStatus?.status !== 'completed' 
+                            ? `Status: Finals in progress (DB auto-verifies when matches conclude). Admin issue active.`
+                            : `Status: Did not finish in Top 4. Admin issue active.`}
+                      </span>
+                    </div>
+
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                      WA: <strong>{currCertPlayer?.whatsapp || 'N/A'}</strong>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Certificate Live Canvas Preview */}
+                <div style={{ textAlign: 'center', marginBottom: '14px' }}>
+                  <div style={{ 
+                    background: '#070b15', 
+                    borderRadius: '8px', 
+                    padding: '8px', 
+                    border: '1px solid var(--border-glow)',
+                    boxShadow: '0 8px 30px rgba(0,0,0,0.6)',
+                    overflow: 'hidden'
+                  }}>
+                    <canvas 
+                      ref={certCanvasRef} 
+                      style={{ 
+                        width: '100%', 
+                        maxWidth: '560px', 
+                        height: 'auto', 
+                        borderRadius: '6px', 
+                        display: 'block', 
+                        margin: '0 auto' 
+                      }} 
+                    />
+                  </div>
+                </div>
+
+                {/* Actions: Download and Send WhatsApp */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => handleDownloadCertificate(currCertPlayer?.name || 'Player', manualRank || detectedRankTitle)}
+                    disabled={!currCertPlayer}
+                    className="btn btn-primary"
+                    style={{ height: '42px', fontSize: '0.84rem', gap: '6px' }}
+                  >
+                    <Download size={16} />
+                    <span>Download Certificate (PNG)</span>
+                  </button>
+
+                  <button 
+                    type="button" 
+                    onClick={() => handleSendWhatsAppCertificate(currCertPlayer, manualRank || detectedRankTitle)}
+                    disabled={!currCertPlayer}
+                    className="btn btn-outline"
+                    style={{ height: '42px', fontSize: '0.84rem', gap: '6px', borderColor: 'var(--accent-green)', color: 'var(--accent-green)' }}
+                  >
+                    <Send size={16} />
+                    <span>Send on WhatsApp</span>
+                  </button>
                 </div>
               </div>
             )}

@@ -239,7 +239,8 @@ app.get('/api/bracket', async (_req: Request, res: Response) => {
     const podium: FinalPodium = {
       first: grandFinal?.winner_id ? (grandFinal.winner_id === grandFinal.player1?.id ? grandFinal.player1 : grandFinal.player2) : null,
       second: grandFinal?.loser_id ? (grandFinal.loser_id === grandFinal.player1?.id ? grandFinal.player1 : grandFinal.player2) : null,
-      third: thirdPlace?.winner_id ? (thirdPlace.winner_id === thirdPlace.player1?.id ? thirdPlace.player1 : thirdPlace.player2) : null
+      third: thirdPlace?.winner_id ? (thirdPlace.winner_id === thirdPlace.player1?.id ? thirdPlace.player1 : thirdPlace.player2) : null,
+      fourth: thirdPlace?.loser_id ? (thirdPlace.loser_id === thirdPlace.player1?.id ? thirdPlace.player1 : thirdPlace.player2) : null
     };
 
     const response: GroupTournamentResponse = {
@@ -405,6 +406,27 @@ app.put('/api/admin/matches/:id/score', verifyAdminPin, async (req: Request, res
     res.json(result);
   } catch (err: any) {
     res.status(400).json({ detail: err.message });
+  }
+});
+
+app.put('/api/admin/players/:id', verifyAdminPin, async (req: Request, res: Response) => {
+  try {
+    const rawId = req.params.id;
+    const playerId = parseInt(Array.isArray(rawId) ? rawId[0] : rawId, 10);
+    const { name, efootball_id, whatsapp, team_name } = req.body;
+
+    if (!name || !efootball_id || !whatsapp) {
+      return res.status(400).json({ detail: 'Player Name, eFootball ID, and WhatsApp are required.' });
+    }
+
+    await queryRun(
+      'UPDATE players SET name = ?, efootball_id = ?, whatsapp = ?, team_name = ? WHERE id = ?',
+      [name.trim(), efootball_id.trim(), whatsapp.trim(), (team_name || '').trim(), playerId]
+    );
+
+    res.json({ success: true, message: `Player #${playerId} details updated successfully.` });
+  } catch (err: any) {
+    res.status(500).json({ detail: err.message });
   }
 });
 

@@ -111,6 +111,7 @@ export interface FinalPodium {
   first: MatchPlayer | null;
   second: MatchPlayer | null;
   third: MatchPlayer | null;
+  fourth: MatchPlayer | null;
 }
 
 export interface GroupTournamentResponse {

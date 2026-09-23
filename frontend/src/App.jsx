@@ -31,6 +31,18 @@ export default function App() {
   const [showPrizesModal, setShowPrizesModal] = useState(false);
   const [activeScoreMatch, setActiveScoreMatch] = useState(null);
 
+  // Theme state
+  const [theme, setTheme] = useState(() => localStorage.getItem('ef_theme') || 'dark');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('ef_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
+
   // Fetch all tournament data
   const fetchData = useCallback(async () => {
     try {
@@ -100,6 +112,8 @@ export default function App() {
         tournamentStatus={tournamentStatus} 
         isAdmin={isAdmin}
         onOpenAdmin={() => setShowAdminModal(true)}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       {/* Messi & Ronaldo eFootball Hero Showcase */}
@@ -238,6 +252,7 @@ export default function App() {
         onLogout={handleAdminLogout}
         tournamentStatus={tournamentStatus}
         players={players}
+        bracketData={bracketData}
         onRefresh={fetchData}
       />
 
