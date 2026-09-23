@@ -39,6 +39,20 @@ export default function AdminModal({
     }
   }, [isOpen, isAdmin]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleLogin = async (e) => {
@@ -199,7 +213,7 @@ export default function AdminModal({
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-overlay modal-backdrop" onClick={onClose}>
       <div className="modal-content glass-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '640px' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -298,6 +312,7 @@ export default function AdminModal({
                     className="btn btn-primary" 
                     onClick={handleGenerateGroups}
                     disabled={loading || (tournamentStatus?.verified_count || 0) < 4}
+                    title={(tournamentStatus?.verified_count || 0) < 4 ? `Need at least 4 verified paid players to seed rooms (currently ${tournamentStatus?.verified_count || 0})` : 'Seed 4 Custom Rooms and Brackets'}
                     style={{ height: '48px', fontSize: '0.84rem', gap: '6px' }}
                   >
                     <Shuffle size={16} />
