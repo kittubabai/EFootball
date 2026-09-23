@@ -1,35 +1,17 @@
 import { queryAll, queryGet, queryRun } from './database.js';
 import { Player, Match, ScoreUpdateInput } from './types/tournament.js';
 
-const ROUND_NAMES: Record<number, string> = {
-  32: 'Round of 32',
-  16: 'Round of 16',
-  8: 'Quarter-Finals',
-  4: 'Semi-Finals',
-  2: 'Grand Final'
-};
-
-export function determineBracketSize(playerCount: number): number {
-  if (playerCount <= 4) return 4;
-  if (playerCount <= 8) return 8;
-  if (playerCount <= 16) return 16;
-  return 32;
-}
-
-export async function generateBracketMatches(shuffleSeeds: boolean = true) {
-  // 1. Fetch active players
+export async function generateGroupTournament(shuffleSeeds: boolean = true) {
+  // 1. Fetch active players (prioritizing verified players)
   const players = await queryAll<Player>("SELECT * FROM players WHERE status = 'active'");
-  if (players.length < 2) {
-    throw new Error('At least 2 players are required to generate a tournament bracket.');
+  if (players.length < 4) {
+    throw new Error('At least 4 players are required to generate tournament groups.');
   }
 
-  // 2. Clear existing matches
+  // Clear existing matches
   await queryRun('DELETE FROM matches');
 
-  // 3. Bracket size
-  const bracketSize = determineBracketSize(players.length);
-
-  // 4. Shuffle seeds if requested
+  // Shuffle players
   const playerList = [...players];
   if (shuffleSeeds) {
     for (let i = playerList.length - 1; i > 0; i--) {
@@ -38,124 +20,168 @@ export async function generateBracketMatches(shuffleSeeds: boolean = true) {
     }
   }
 
-  // Update seed numbers
-  for (let idx = 0; idx < playerList.length; idx++) {
-    await queryRun('UPDATE players SET seed = ? WHERE id = ?', [idx + 1, playerList[idx].id]);
-  }
+  // 2. Distribute players into 4 groups: A, B, C, D (up to 8 per group)
+  const groupKeys: ('A' | 'B' | 'C' | 'D')[] = ['A', 'B', 'C', 'D'];
+  const groupBuckets: Record<'A' | 'B' | 'C' | 'D', (Player | null)[]> = {
+    A: [],
+    B: [],
+    C: [],
+    D: []
+  };
 
-  // Pad slots for byes
-  const slots: (Player | null)[] = [...playerList];
-  while (slots.length < bracketSize) {
-    slots.push(null);
-  }
+  // Assign players round-robin or in chunks of 8
+  playerList.forEach((p, idx) => {
+    const group = groupKeys[idx % 4];
+    groupBuckets[group].push(p);
+    queryRun('UPDATE players SET group_assigned = ?, seed = ? WHERE id = ?', [group, idx + 1, p.id]);
+  });
 
-  // 5. Structure rounds
-  const totalRounds = Math.log2(bracketSize);
-  const roundMatches: Record<number, any[]> = {};
-
-  let currentMatchesCount = bracketSize / 2;
-  for (let rIdx = 1; rIdx <= totalRounds; rIdx++) {
-    const matchesInRound = currentMatchesCount;
-    const teamsInRound = matchesInRound * 2;
-    const roundName = ROUND_NAMES[teamsInRound] || `Round of ${teamsInRound}`;
-
-    roundMatches[rIdx] = [];
-    for (let mNum = 1; mNum <= matchesInRound; mNum++) {
-      roundMatches[rIdx].push({
-        round_index: rIdx,
-        round_name: roundName,
-        match_number: mNum,
-        player1_id: null,
-        player2_id: null,
-        next_match_id: null,
-        next_match_slot: null,
-        status: 'scheduled',
-        winner_id: null
-      });
+  // Ensure each group has 8 slots (pad with null for byes)
+  for (const g of groupKeys) {
+    while (groupBuckets[g].length < 8) {
+      groupBuckets[g].push(null);
     }
-    currentMatchesCount = currentMatchesCount / 2;
   }
 
-  // Assign Round 1 players
-  for (let i = 0; i < bracketSize / 2; i++) {
-    const p1 = slots[i * 2];
-    const p2 = slots[i * 2 + 1];
-    roundMatches[1][i].player1_id = p1 ? p1.id : null;
-    roundMatches[1][i].player2_id = p2 ? p2.id : null;
-  }
+  // 3. First, create the Final 4 Championship matches so group finals can link to them!
+  // Finals:
+  // - Grand Final (1st & 2nd)
+  // - 3rd Place Match (3rd)
+  // - Semi-Final 1 (Winner A vs Winner B)
+  // - Semi-Final 2 (Winner C vs Winner D)
 
-  // 6. Insert matches backwards (from Final down to Round 1) to wire next_match_id
-  const dbMatchIds = new Map<string, number>(); // `${round_index}_${match_number}` -> db_id
+  // Insert Grand Final
+  const gfRes = await queryRun(`
+    INSERT INTO matches (
+      group_key, round_name, round_index, match_number, status
+    ) VALUES ('FINALS', 'Grand Final (1st & 2nd Place)', 5, 2, 'scheduled')
+  `);
+  const grandFinalId = gfRes.lastID;
 
-  for (let rIdx = totalRounds; rIdx >= 1; rIdx--) {
-    for (const m of roundMatches[rIdx]) {
-      if (rIdx < totalRounds) {
-        const nextR = rIdx + 1;
-        const nextMNum = Math.floor((m.match_number + 1) / 2);
-        const nextSlot = m.match_number % 2 !== 0 ? 1 : 2;
-        const nextDbId = dbMatchIds.get(`${nextR}_${nextMNum}`);
-        m.next_match_id = nextDbId || null;
-        m.next_match_slot = nextSlot;
-      }
+  // Insert 3rd Place Match
+  const tpRes = await queryRun(`
+    INSERT INTO matches (
+      group_key, round_name, round_index, match_number, status
+    ) VALUES ('FINALS', '3rd Place Playoff (3rd Position)', 5, 1, 'scheduled')
+  `);
+  const thirdPlaceId = tpRes.lastID;
 
-      const runRes = await queryRun(
-        `INSERT INTO matches (
-          round_name, round_index, match_number,
+  // Insert Semi-Final 1
+  const sf1Res = await queryRun(`
+    INSERT INTO matches (
+      group_key, round_name, round_index, match_number,
+      next_match_id, next_match_slot,
+      loser_next_match_id, loser_next_slot, status
+    ) VALUES ('FINALS', 'Semi-Final 1 (Winner A vs Winner B)', 4, 1, ?, 1, ?, 1, 'scheduled')
+  `, [grandFinalId, thirdPlaceId]);
+  const sf1Id = sf1Res.lastID;
+
+  // Insert Semi-Final 2
+  const sf2Res = await queryRun(`
+    INSERT INTO matches (
+      group_key, round_name, round_index, match_number,
+      next_match_id, next_match_slot,
+      loser_next_match_id, loser_next_slot, status
+    ) VALUES ('FINALS', 'Semi-Final 2 (Winner C vs Winner D)', 4, 2, ?, 2, ?, 2, 'scheduled')
+  `, [grandFinalId, thirdPlaceId]);
+  const sf2Id = sf2Res.lastID;
+
+  // Map each group final to its designated semi-final slot
+  const groupFinalTargets: Record<'A' | 'B' | 'C' | 'D', { nextId: number; nextSlot: number }> = {
+    A: { nextId: sf1Id, nextSlot: 1 },
+    B: { nextId: sf1Id, nextSlot: 2 },
+    C: { nextId: sf2Id, nextSlot: 1 },
+    D: { nextId: sf2Id, nextSlot: 2 }
+  };
+
+  // 4. Build 8-player knockout tree for each group (A, B, C, D)
+  for (const g of groupKeys) {
+    const slots = groupBuckets[g];
+    const target = groupFinalTargets[g];
+
+    // Group Final (Match 7)
+    const gfMatch = await queryRun(`
+      INSERT INTO matches (
+        group_key, round_name, round_index, match_number,
+        next_match_id, next_match_slot, status
+      ) VALUES (?, ?, 3, 1, ?, ?, 'scheduled')
+    `, [g, `Group ${g} Final`, target.nextId, target.nextSlot]);
+    const groupFinalId = gfMatch.lastID;
+
+    // Group Semi-Finals (Match 5 and 6)
+    const gsf1 = await queryRun(`
+      INSERT INTO matches (
+        group_key, round_name, round_index, match_number,
+        next_match_id, next_match_slot, status
+      ) VALUES (?, ?, 2, 1, ?, 1, 'scheduled')
+    `, [g, `Group ${g} Semi-Final 1`, groupFinalId]);
+    const gsf1Id = gsf1.lastID;
+
+    const gsf2 = await queryRun(`
+      INSERT INTO matches (
+        group_key, round_name, round_index, match_number,
+        next_match_id, next_match_slot, status
+      ) VALUES (?, ?, 2, 2, ?, 2, 'scheduled')
+    `, [g, `Group ${g} Semi-Final 2`, groupFinalId]);
+    const gsf2Id = gsf2.lastID;
+
+    // Group Quarter-Finals (Match 1, 2, 3, 4)
+    const qfTargets = [
+      { id: gsf1Id, slot: 1 },
+      { id: gsf1Id, slot: 2 },
+      { id: gsf2Id, slot: 1 },
+      { id: gsf2Id, slot: 2 }
+    ];
+
+    for (let i = 0; i < 4; i++) {
+      const p1 = slots[i * 2];
+      const p2 = slots[i * 2 + 1];
+      const qfTarget = qfTargets[i];
+
+      const qfRes = await queryRun(`
+        INSERT INTO matches (
+          group_key, round_name, round_index, match_number,
           player1_id, player2_id,
-          next_match_id, next_match_slot, status, winner_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          m.round_name,
-          m.round_index,
-          m.match_number,
-          m.player1_id,
-          m.player2_id,
-          m.next_match_id,
-          m.next_match_slot,
-          m.status,
-          m.winner_id
-        ]
-      );
+          next_match_id, next_match_slot, status
+        ) VALUES (?, ?, 1, ?, ?, ?, ?, ?, 'scheduled')
+      `, [
+        g,
+        `Group ${g} Match ${i + 1}`,
+        i + 1,
+        p1 ? p1.id : null,
+        p2 ? p2.id : null,
+        qfTarget.id,
+        qfTarget.slot
+      ]);
 
-      const dbId = runRes.lastID;
-      dbMatchIds.set(`${rIdx}_${m.match_number}`, dbId);
-      m.id = dbId;
-    }
-  }
+      const qfMatchId = qfRes.lastID;
 
-  // 7. Auto-advance BYEs in Round 1
-  for (const m of roundMatches[1]) {
-    const p1Id = m.player1_id;
-    const p2Id = m.player2_id;
-
-    if (p1Id && !p2Id) {
-      await queryRun(
-        "UPDATE matches SET winner_id = ?, status = 'bye', player1_score = 1, player2_score = 0 WHERE id = ?",
-        [p1Id, m.id]
-      );
-      if (m.next_match_id) {
-        const col = m.next_match_slot === 1 ? 'player1_id' : 'player2_id';
-        await queryRun(`UPDATE matches SET ${col} = ? WHERE id = ?`, [p1Id, m.next_match_id]);
-      }
-    } else if (p2Id && !p1Id) {
-      await queryRun(
-        "UPDATE matches SET winner_id = ?, status = 'bye', player1_score = 0, player2_score = 1 WHERE id = ?",
-        [p2Id, m.id]
-      );
-      if (m.next_match_id) {
-        const col = m.next_match_slot === 1 ? 'player1_id' : 'player2_id';
-        await queryRun(`UPDATE matches SET ${col} = ? WHERE id = ?`, [p2Id, m.next_match_id]);
+      // Handle byes
+      if (p1 && !p2) {
+        await queryRun(
+          "UPDATE matches SET winner_id = ?, status = 'bye', player1_score = 1, player2_score = 0 WHERE id = ?",
+          [p1.id, qfMatchId]
+        );
+        const col = qfTarget.slot === 1 ? 'player1_id' : 'player2_id';
+        await queryRun(`UPDATE matches SET ${col} = ? WHERE id = ?`, [p1.id, qfTarget.id]);
+      } else if (p2 && !p1) {
+        await queryRun(
+          "UPDATE matches SET winner_id = ?, status = 'bye', player1_score = 0, player2_score = 1 WHERE id = ?",
+          [p2.id, qfMatchId]
+        );
+        const col = qfTarget.slot === 1 ? 'player1_id' : 'player2_id';
+        await queryRun(`UPDATE matches SET ${col} = ? WHERE id = ?`, [p2.id, qfTarget.id]);
       }
     }
   }
 
-  // 8. Update tournament meta status to in_progress
+  // Update status to in_progress
   await queryRun("UPDATE tournament_meta SET status = 'in_progress' WHERE id = 1");
 
   return {
-    message: 'Tournament bracket generated successfully',
-    bracket_size: bracketSize,
-    total_rounds: totalRounds
+    message: 'Tournament generated with 4 groups (8 players each) and Final 4 Championship!',
+    groups: ['Group A', 'Group B', 'Group C', 'Group D'],
+    finals: 'Final 4 Championship Room'
   };
 }
 
@@ -172,11 +198,15 @@ export async function updateMatchScore(matchId: number, input: ScoreUpdateInput)
   }
 
   let winnerId = input.winner_id;
+  let loserId: number | null = null;
+
   if (!winnerId) {
     if (input.player1_score > input.player2_score) {
       winnerId = p1Id;
+      loserId = p2Id;
     } else if (input.player2_score > input.player1_score) {
       winnerId = p2Id;
+      loserId = p1Id;
     } else {
       // Tied: check penalties
       const p1Pk = input.player1_pk;
@@ -184,8 +214,10 @@ export async function updateMatchScore(matchId: number, input: ScoreUpdateInput)
       if (p1Pk !== undefined && p1Pk !== null && p2Pk !== undefined && p2Pk !== null) {
         if (p1Pk > p2Pk) {
           winnerId = p1Id;
+          loserId = p2Id;
         } else if (p2Pk > p1Pk) {
           winnerId = p2Id;
+          loserId = p1Id;
         } else {
           throw new Error('Match is tied! Penalty shootout score must have a decisive winner.');
         }
@@ -193,6 +225,8 @@ export async function updateMatchScore(matchId: number, input: ScoreUpdateInput)
         throw new Error('Score is tied. Please enter penalty shootout (PK) scores.');
       }
     }
+  } else {
+    loserId = winnerId === p1Id ? p2Id : p1Id;
   }
 
   // Update current match
@@ -200,7 +234,7 @@ export async function updateMatchScore(matchId: number, input: ScoreUpdateInput)
     `UPDATE matches SET
       player1_score = ?, player2_score = ?,
       player1_pk = ?, player2_pk = ?,
-      is_extra_time = ?, winner_id = ?, status = 'completed'
+      is_extra_time = ?, winner_id = ?, loser_id = ?, status = 'completed'
     WHERE id = ?`,
     [
       input.player1_score,
@@ -209,21 +243,31 @@ export async function updateMatchScore(matchId: number, input: ScoreUpdateInput)
       input.player2_pk ?? null,
       input.is_extra_time ? 1 : 0,
       winnerId,
+      loserId,
       matchId
     ]
   );
 
-  // Advance winner to next round
+  // Advance winner to next match if applicable
   if (match.next_match_id) {
     const col = match.next_match_slot === 1 ? 'player1_id' : 'player2_id';
     await queryRun(`UPDATE matches SET ${col} = ? WHERE id = ?`, [winnerId, match.next_match_id]);
-  } else {
-    // Grand Final completed!
+  }
+
+  // Advance loser to 3rd place match if this was a Semi-Final
+  if (match.loser_next_match_id && loserId) {
+    const loserCol = match.loser_next_slot === 1 ? 'player1_id' : 'player2_id';
+    await queryRun(`UPDATE matches SET ${loserCol} = ? WHERE id = ?`, [loserId, match.loser_next_match_id]);
+  }
+
+  // If Grand Final completed, mark tournament completed
+  if (match.group_key === 'FINALS' && match.round_index === 5 && match.match_number === 2) {
     await queryRun("UPDATE tournament_meta SET status = 'completed' WHERE id = 1");
   }
 
   return {
-    message: 'Score updated and winner advanced successfully',
-    winner_id: winnerId
+    message: 'Score recorded and winners/losers advanced successfully',
+    winner_id: winnerId,
+    loser_id: loserId
   };
 }

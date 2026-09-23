@@ -52,16 +52,35 @@ export async function initDb(): Promise<void> {
       status TEXT NOT NULL DEFAULT 'registration',
       admin_pin TEXT NOT NULL DEFAULT '1234',
       max_players INTEGER NOT NULL DEFAULT 32,
-      match_time_mins INTEGER NOT NULL DEFAULT 7
+      match_time_mins INTEGER NOT NULL DEFAULT 7,
+      event_date TEXT NOT NULL DEFAULT '18th October 2026',
+      event_time TEXT NOT NULL DEFAULT '11:00 AM onwards',
+      entry_fee INTEGER NOT NULL DEFAULT 100,
+      upi_id TEXT NOT NULL DEFAULT 'sayantanbabu2000-1@oksbi',
+      upi_name TEXT NOT NULL DEFAULT 'Sayantan Chakraborty'
     )
   `);
 
   const existingMeta = await queryGet('SELECT id FROM tournament_meta WHERE id = 1');
   if (!existingMeta) {
     await queryRun(`
-      INSERT INTO tournament_meta (id, title, status, admin_pin, max_players, match_time_mins)
-      VALUES (1, 'Pantihal eFootball Cup 2026', 'registration', '1234', 32, 7)
+      INSERT INTO tournament_meta (
+        id, title, status, admin_pin, max_players, match_time_mins,
+        event_date, event_time, entry_fee, upi_id, upi_name
+      ) VALUES (
+        1, 'Pantihal eFootball Cup 2026', 'registration', '1234', 32, 7,
+        '18th October 2026', '11:00 AM onwards', 100, 'sayantanbabu2000-1@oksbi', 'Sayantan Chakraborty'
+      )
     `);
+  } else {
+    // Ensure all columns exist for migrations
+    try {
+      await queryRun("ALTER TABLE tournament_meta ADD COLUMN event_date TEXT DEFAULT '18th October 2026'");
+      await queryRun("ALTER TABLE tournament_meta ADD COLUMN event_time TEXT DEFAULT '11:00 AM onwards'");
+      await queryRun("ALTER TABLE tournament_meta ADD COLUMN entry_fee INTEGER DEFAULT 100");
+      await queryRun("ALTER TABLE tournament_meta ADD COLUMN upi_id TEXT DEFAULT 'sayantanbabu2000-1@oksbi'");
+      await queryRun("ALTER TABLE tournament_meta ADD COLUMN upi_name TEXT DEFAULT 'Sayantan Chakraborty'");
+    } catch (_) {}
   }
 
   // 2. Players table
@@ -73,15 +92,25 @@ export async function initDb(): Promise<void> {
       whatsapp TEXT NOT NULL,
       team_name TEXT DEFAULT '',
       seed INTEGER DEFAULT NULL,
+      payment_status TEXT NOT NULL DEFAULT 'pending',
+      utr_number TEXT NOT NULL DEFAULT '',
+      group_assigned TEXT DEFAULT NULL,
       registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       status TEXT DEFAULT 'active'
     )
   `);
 
-  // 3. Matches table
+  try {
+    await queryRun("ALTER TABLE players ADD COLUMN payment_status TEXT DEFAULT 'pending'");
+    await queryRun("ALTER TABLE players ADD COLUMN utr_number TEXT DEFAULT ''");
+    await queryRun("ALTER TABLE players ADD COLUMN group_assigned TEXT DEFAULT NULL");
+  } catch (_) {}
+
+  // 3. Matches table with 4-group & finals support
   await queryRun(`
     CREATE TABLE IF NOT EXISTS matches (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      group_key TEXT NOT NULL DEFAULT 'A',
       round_name TEXT NOT NULL,
       round_index INTEGER NOT NULL,
       match_number INTEGER NOT NULL,
@@ -93,12 +122,23 @@ export async function initDb(): Promise<void> {
       player2_pk INTEGER NULL,
       is_extra_time INTEGER DEFAULT 0,
       winner_id INTEGER NULL,
+      loser_id INTEGER NULL,
       next_match_id INTEGER NULL,
       next_match_slot INTEGER NULL,
+      loser_next_match_id INTEGER NULL,
+      loser_next_slot INTEGER NULL,
       status TEXT DEFAULT 'scheduled',
       FOREIGN KEY (player1_id) REFERENCES players (id),
       FOREIGN KEY (player2_id) REFERENCES players (id),
-      FOREIGN KEY (winner_id) REFERENCES players (id)
+      FOREIGN KEY (winner_id) REFERENCES players (id),
+      FOREIGN KEY (loser_id) REFERENCES players (id)
     )
   `);
+
+  try {
+    await queryRun("ALTER TABLE matches ADD COLUMN group_key TEXT DEFAULT 'A'");
+    await queryRun("ALTER TABLE matches ADD COLUMN loser_id INTEGER NULL");
+    await queryRun("ALTER TABLE matches ADD COLUMN loser_next_match_id INTEGER NULL");
+    await queryRun("ALTER TABLE matches ADD COLUMN loser_next_slot INTEGER NULL");
+  } catch (_) {}
 }

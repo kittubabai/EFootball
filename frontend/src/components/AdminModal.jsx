@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Lock, ShieldCheck, Shuffle, RotateCcw, UserPlus, Trash2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { X, Lock, ShieldCheck, Shuffle, RotateCcw, UserPlus, Trash2, AlertCircle, CheckCircle2, Check, Clock } from 'lucide-react';
 
 export default function AdminModal({ 
   isOpen, 
@@ -44,9 +44,29 @@ export default function AdminModal({
     }
   };
 
-  const handleGenerateBracket = async () => {
-    if (players.length < 2) {
-      setMsg({ text: 'You need at least 2 registered players to generate a tournament bracket!', type: 'error' });
+  const handleVerifyPayment = async (playerId, newStatus = 'verified') => {
+    try {
+      const res = await fetch(`/api/admin/players/${playerId}/verify-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Pin': adminPin
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Failed to update payment status.');
+
+      setMsg({ text: `Payment status updated to ${newStatus}.`, type: 'success' });
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      setMsg({ text: err.message, type: 'error' });
+    }
+  };
+
+  const handleGenerateGroups = async () => {
+    if (players.length < 4) {
+      setMsg({ text: 'You need at least 4 registered players to generate tournament groups!', type: 'error' });
       return;
     }
 
@@ -59,9 +79,9 @@ export default function AdminModal({
         headers: { 'X-Admin-Pin': adminPin }
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Failed to generate bracket.');
+      if (!res.ok) throw new Error(data.detail || 'Failed to generate groups.');
 
-      setMsg({ text: `Knockout bracket successfully generated (${data.bracket_size}-player tree, ${data.total_rounds} rounds)!`, type: 'success' });
+      setMsg({ text: '4 Custom Rooms (A, B, C, D) & Final 4 Championship generated successfully!', type: 'success' });
       if (onRefresh) onRefresh();
     } catch (err) {
       setMsg({ text: err.message, type: 'error' });
@@ -70,7 +90,7 @@ export default function AdminModal({
     }
   };
 
-  const handleAddDemoPlayers = async (count = 16) => {
+  const handleAddDemoPlayers = async (count = 32) => {
     setLoading(true);
     setMsg({ text: '', type: '' });
     try {
@@ -128,7 +148,7 @@ export default function AdminModal({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '640px' }}>
+      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '680px' }}>
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <ShieldCheck size={22} className="glow-text-green" />
@@ -150,7 +170,7 @@ export default function AdminModal({
           /* Login Form */
           <form onSubmit={handleLogin} style={{ marginTop: '10px' }}>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-              Enter the Tournament Organizer PIN to access bracket generation and score management.
+              Enter the Tournament Organizer PIN to verify player payments, seed 8-player groups, and record match results.
             </p>
 
             <div className="form-group">
@@ -176,9 +196,9 @@ export default function AdminModal({
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.04)', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px' }}>
               <div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Status</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Status</div>
                 <div style={{ fontWeight: '800', color: 'var(--accent-green)', textTransform: 'uppercase' }}>
-                  {tournamentStatus?.status} ({players.length} Players)
+                  {tournamentStatus?.status} • {players.length} Registrations
                 </div>
               </div>
               <button 
@@ -194,49 +214,69 @@ export default function AdminModal({
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
               <button 
                 className="btn btn-primary" 
-                onClick={handleGenerateBracket}
-                disabled={loading || players.length < 2}
-                style={{ height: '56px', fontSize: '0.9rem', gap: '8px' }}
+                onClick={handleGenerateGroups}
+                disabled={loading || players.length < 4}
+                style={{ height: '56px', fontSize: '0.88rem', gap: '8px' }}
               >
                 <Shuffle size={18} />
-                <span>Shuffle & Generate Bracket</span>
+                <span>Seed 4 Groups (8 Players Each)</span>
               </button>
 
               <button 
                 className="btn btn-outline" 
-                onClick={() => handleAddDemoPlayers(16)}
+                onClick={() => handleAddDemoPlayers(32)}
                 disabled={loading}
-                style={{ height: '56px', fontSize: '0.88rem', gap: '8px', borderColor: 'rgba(0, 229, 255, 0.4)' }}
+                style={{ height: '56px', fontSize: '0.85rem', gap: '8px', borderColor: 'rgba(0, 229, 255, 0.4)' }}
               >
                 <UserPlus size={18} color="#00e5ff" />
-                <span>Add 16 Demo Players</span>
+                <span>Add 32 Demo Paid Players</span>
               </button>
             </div>
 
-            {/* Players Management */}
+            {/* Players Management with UTR Verification */}
             <h4 style={{ fontSize: '1rem', marginBottom: '12px', color: 'var(--text-muted)' }}>
-              Registered Participants ({players.length}):
+              Registered Players & UTR Payments ({players.length}):
             </h4>
-            <div style={{ maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+            <div style={{ maxHeight: '240px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
               {players.length === 0 ? (
                 <div style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '20px' }}>
                   No registered players yet.
                 </div>
               ) : (
                 players.map(p => (
-                  <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(8,12,20,0.7)', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                  <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(8,12,20,0.7)', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', flexWrap: 'wrap', gap: '8px' }}>
                     <div>
                       <strong style={{ fontSize: '0.9rem' }}>{p.name}</strong>
                       <span style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)', marginLeft: '8px' }}>({p.efootball_id})</span>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>WA: {p.whatsapp}</div>
+                      <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        WA: <strong>{p.whatsapp}</strong> • UTR: <code style={{ color: 'var(--accent-gold)' }}>{p.utr_number || 'N/A'}</code>
+                      </div>
                     </div>
-                    <button 
-                      onClick={() => handleDeletePlayer(p.id, p.name)}
-                      style={{ background: 'transparent', border: 'none', color: 'var(--accent-red)', cursor: 'pointer', padding: '4px' }}
-                      title="Remove Player"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {p.payment_status === 'verified' ? (
+                        <span style={{ fontSize: '0.74rem', background: 'rgba(0,255,135,0.12)', color: 'var(--accent-green)', padding: '4px 8px', borderRadius: '4px', fontWeight: '700' }}>
+                          ✓ Verified
+                        </span>
+                      ) : (
+                        <button 
+                          onClick={() => handleVerifyPayment(p.id, 'verified')}
+                          className="btn btn-outline"
+                          style={{ padding: '4px 10px', fontSize: '0.74rem', borderColor: 'rgba(0,255,135,0.4)', color: 'var(--accent-green)' }}
+                          title="Verify ₹100 Payment"
+                        >
+                          <Check size={12} /> Verify ₹100
+                        </button>
+                      )}
+
+                      <button 
+                        onClick={() => handleDeletePlayer(p.id, p.name)}
+                        style={{ background: 'transparent', border: 'none', color: 'var(--accent-red)', cursor: 'pointer', padding: '4px' }}
+                        title="Remove Player"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                 ))
               )}
@@ -251,7 +291,7 @@ export default function AdminModal({
                 disabled={loading}
               >
                 <RotateCcw size={14} />
-                <span>Reset Bracket Only</span>
+                <span>Reset Brackets Only</span>
               </button>
 
               <button 

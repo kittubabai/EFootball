@@ -12,10 +12,11 @@ import {
   Match,
   MatchResponse,
   MatchPlayer,
-  BracketResponse,
-  RoundResponse
+  GroupTournamentResponse,
+  GroupBracket,
+  FinalPodium
 } from './types/tournament.js';
-import { generateBracketMatches, updateMatchScore } from './bracketService.js';
+import { generateGroupTournament, updateMatchScore } from './bracketService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,19 +53,51 @@ const fetchPlayerDetail = async (playerId: number | null): Promise<MatchPlayer |
   };
 };
 
+const mapMatchToResponse = async (m: Match): Promise<MatchResponse> => {
+  const p1 = await fetchPlayerDetail(m.player1_id);
+  const p2 = await fetchPlayerDetail(m.player2_id);
+
+  return {
+    id: m.id,
+    group_key: m.group_key,
+    round_name: m.round_name,
+    round_index: m.round_index,
+    match_number: m.match_number,
+    player1: p1,
+    player2: p2,
+    player1_score: m.player1_score,
+    player2_score: m.player2_score,
+    player1_pk: m.player1_pk,
+    player2_pk: m.player2_pk,
+    is_extra_time: Boolean(m.is_extra_time),
+    winner_id: m.winner_id,
+    loser_id: m.loser_id,
+    next_match_id: m.next_match_id,
+    next_match_slot: m.next_match_slot,
+    status: m.status
+  };
+};
+
 // --- Public Endpoints ---
 
 app.get('/api/status', async (_req: Request, res: Response) => {
   try {
-    const meta = await queryGet<TournamentMeta>('SELECT title, status, max_players, match_time_mins FROM tournament_meta WHERE id = 1');
-    const countRow = await queryGet<{ cnt: number }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active'");
+    const meta = await queryGet<TournamentMeta>('SELECT * FROM tournament_meta WHERE id = 1');
+    const totalCount = await queryGet<{ cnt: number }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active'");
+    const verifiedCount = await queryGet<{ cnt: number }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified'");
 
     const result: TournamentStatusResponse = {
-      title: meta?.title || 'eFootball Mobile Cup 2026',
+      title: meta?.title || 'Pantihal eFootball Cup 2026',
       status: meta?.status || 'registration',
-      registered_count: countRow?.cnt || 0,
+      registered_count: totalCount?.cnt || 0,
+      verified_count: verifiedCount?.cnt || 0,
       max_players: meta?.max_players || 32,
-      match_time_mins: meta?.match_time_mins || 7
+      match_time_mins: meta?.match_time_mins || 7,
+      event_date: meta?.event_date || '18th October 2026',
+      event_time: meta?.event_time || '11:00 AM onwards',
+      entry_fee: meta?.entry_fee || 100,
+      upi_id: meta?.upi_id || 'sayantanbabu2000-1@oksbi',
+      upi_name: meta?.upi_name || 'Sayantan Chakraborty'
     };
     res.json(result);
   } catch (err: any) {
@@ -74,10 +107,10 @@ app.get('/api/status', async (_req: Request, res: Response) => {
 
 app.post('/api/players/register', async (req: Request, res: Response) => {
   try {
-    const { name, efootball_id, whatsapp, team_name } = req.body;
+    const { name, efootball_id, whatsapp, team_name, utr_number } = req.body;
 
-    if (!name || !efootball_id || !whatsapp) {
-      return res.status(400).json({ detail: 'Name, eFootball ID, and WhatsApp number are required.' });
+    if (!name || !efootball_id || !whatsapp || !utr_number) {
+      return res.status(400).json({ detail: 'Name, eFootball ID, WhatsApp, and Payment UTR / Transaction ID are required.' });
     }
 
     const meta = await queryGet<TournamentMeta>('SELECT status, max_players FROM tournament_meta WHERE id = 1');
@@ -95,9 +128,14 @@ app.post('/api/players/register', async (req: Request, res: Response) => {
       return res.status(400).json({ detail: 'This eFootball User ID is already registered.' });
     }
 
+    const existingUtr = await queryGet<Player>('SELECT id FROM players WHERE utr_number = ?', [utr_number.trim()]);
+    if (existingUtr) {
+      return res.status(400).json({ detail: 'This UTR / Transaction ID has already been submitted.' });
+    }
+
     const runRes = await queryRun(
-      'INSERT INTO players (name, efootball_id, whatsapp, team_name) VALUES (?, ?, ?, ?)',
-      [name.trim(), efootball_id.trim(), whatsapp.trim(), (team_name || '').trim()]
+      'INSERT INTO players (name, efootball_id, whatsapp, team_name, utr_number, payment_status) VALUES (?, ?, ?, ?, ?, ?)',
+      [name.trim(), efootball_id.trim(), whatsapp.trim(), (team_name || '').trim(), utr_number.trim(), 'pending']
     );
 
     const newPlayer = await queryGet<Player>('SELECT * FROM players WHERE id = ?', [runRes.lastID]);
@@ -119,47 +157,60 @@ app.get('/api/players', async (_req: Request, res: Response) => {
 app.get('/api/bracket', async (_req: Request, res: Response) => {
   try {
     const meta = await queryGet<TournamentMeta>('SELECT status FROM tournament_meta WHERE id = 1');
-    const matches = await queryAll<Match>('SELECT * FROM matches ORDER BY round_index ASC, match_number ASC');
+    const matches = await queryAll<Match>('SELECT * FROM matches ORDER BY group_key ASC, round_index ASC, match_number ASC');
 
-    const roundsMap = new Map<number, RoundResponse>();
+    const groupKeys = ['A', 'B', 'C', 'D'];
+    const groups: Record<string, GroupBracket> = {};
 
-    for (const m of matches) {
-      if (!roundsMap.has(m.round_index)) {
-        roundsMap.set(m.round_index, {
-          round_index: m.round_index,
-          round_name: m.round_name,
-          matches: []
-        });
+    for (const g of groupKeys) {
+      const gMatches = matches.filter(m => m.group_key === g);
+      const mappedMatches: MatchResponse[] = [];
+      for (const m of gMatches) {
+        mappedMatches.push(await mapMatchToResponse(m));
       }
 
-      const p1 = await fetchPlayerDetail(m.player1_id);
-      const p2 = await fetchPlayerDetail(m.player2_id);
+      // Group Final is round_index 3
+      const gFinal = mappedMatches.find(m => m.round_index === 3);
+      const winner = gFinal?.winner_id ? (gFinal.winner_id === gFinal.player1?.id ? gFinal.player1 : gFinal.player2) : null;
 
-      roundsMap.get(m.round_index)!.matches.push({
-        id: m.id,
-        round_name: m.round_name,
-        round_index: m.round_index,
-        match_number: m.match_number,
-        player1: p1,
-        player2: p2,
-        player1_score: m.player1_score,
-        player2_score: m.player2_score,
-        player1_pk: m.player1_pk,
-        player2_pk: m.player2_pk,
-        is_extra_time: Boolean(m.is_extra_time),
-        winner_id: m.winner_id,
-        next_match_id: m.next_match_id,
-        next_match_slot: m.next_match_slot,
-        status: m.status
-      });
+      groups[g] = {
+        group_key: g,
+        group_name: `Group ${g} (8-Player Room)`,
+        winner,
+        matches: mappedMatches
+      };
     }
 
-    const bracketRes: BracketResponse = {
-      tournament_status: meta?.status || 'registration',
-      rounds: Array.from(roundsMap.values())
+    // Finals: group_key === 'FINALS'
+    const finalMatches = matches.filter(m => m.group_key === 'FINALS');
+    const mappedFinals: MatchResponse[] = [];
+    for (const m of finalMatches) {
+      mappedFinals.push(await mapMatchToResponse(m));
+    }
+
+    const semiFinals = mappedFinals.filter(m => m.round_index === 4);
+    const thirdPlace = mappedFinals.find(m => m.round_index === 5 && m.match_number === 1) || null;
+    const grandFinal = mappedFinals.find(m => m.round_index === 5 && m.match_number === 2) || null;
+
+    // Podium positions
+    const podium: FinalPodium = {
+      first: grandFinal?.winner_id ? (grandFinal.winner_id === grandFinal.player1?.id ? grandFinal.player1 : grandFinal.player2) : null,
+      second: grandFinal?.loser_id ? (grandFinal.loser_id === grandFinal.player1?.id ? grandFinal.player1 : grandFinal.player2) : null,
+      third: thirdPlace?.winner_id ? (thirdPlace.winner_id === thirdPlace.player1?.id ? thirdPlace.player1 : thirdPlace.player2) : null
     };
 
-    res.json(bracketRes);
+    const response: GroupTournamentResponse = {
+      tournament_status: meta?.status || 'registration',
+      groups,
+      finals: {
+        semi_finals: semiFinals,
+        third_place: thirdPlace,
+        grand_final: grandFinal,
+        podium
+      }
+    };
+
+    res.json(response);
   } catch (err: any) {
     res.status(500).json({ detail: err.message });
   }
@@ -167,30 +218,11 @@ app.get('/api/bracket', async (_req: Request, res: Response) => {
 
 app.get('/api/matches', async (_req: Request, res: Response) => {
   try {
-    const matches = await queryAll<Match>('SELECT * FROM matches ORDER BY round_index ASC, match_number ASC');
+    const matches = await queryAll<Match>('SELECT * FROM matches ORDER BY group_key ASC, round_index ASC, match_number ASC');
     const result: MatchResponse[] = [];
 
     for (const m of matches) {
-      const p1 = await fetchPlayerDetail(m.player1_id);
-      const p2 = await fetchPlayerDetail(m.player2_id);
-
-      result.push({
-        id: m.id,
-        round_name: m.round_name,
-        round_index: m.round_index,
-        match_number: m.match_number,
-        player1: p1,
-        player2: p2,
-        player1_score: m.player1_score,
-        player2_score: m.player2_score,
-        player1_pk: m.player1_pk,
-        player2_pk: m.player2_pk,
-        is_extra_time: Boolean(m.is_extra_time),
-        winner_id: m.winner_id,
-        next_match_id: m.next_match_id,
-        next_match_slot: m.next_match_slot,
-        status: m.status
-      });
+      result.push(await mapMatchToResponse(m));
     }
 
     res.json(result);
@@ -214,9 +246,21 @@ app.post('/api/admin/login', async (req: Request, res: Response) => {
   }
 });
 
+app.post('/api/admin/players/:id/verify-payment', verifyAdminPin, async (req: Request, res: Response) => {
+  try {
+    const rawId = req.params.id;
+    const playerId = parseInt(Array.isArray(rawId) ? rawId[0] : rawId, 10);
+    const status = req.body.status || 'verified';
+    await queryRun('UPDATE players SET payment_status = ? WHERE id = ?', [status, playerId]);
+    res.json({ success: true, message: `Player payment marked as ${status}.` });
+  } catch (err: any) {
+    res.status(500).json({ detail: err.message });
+  }
+});
+
 app.post('/api/admin/bracket/generate', verifyAdminPin, async (_req: Request, res: Response) => {
   try {
-    const result = await generateBracketMatches(true);
+    const result = await generateGroupTournament(true);
     res.json(result);
   } catch (err: any) {
     res.status(400).json({ detail: err.message });
@@ -261,7 +305,7 @@ app.post('/api/admin/reset', verifyAdminPin, async (req: Request, res: Response)
 
 app.post('/api/admin/seed-demo', verifyAdminPin, async (req: Request, res: Response) => {
   try {
-    const count = parseInt((req.query.count as string) || '16', 10);
+    const count = parseInt((req.query.count as string) || '32', 10);
     const sampleTeams = [
       ['Apex Striker', '738-921-001', '+919876543210', 'Real Madrid DT'],
       ['Shadow Dribbler', '492-118-002', '+919876543211', 'FC Barcelona DT'],
@@ -278,22 +322,40 @@ app.post('/api/admin/seed-demo', verifyAdminPin, async (req: Request, res: Respo
       ['Titan GK', '119-482-013', '+919876543222', 'Chelsea DT'],
       ['Pulse Maker', '994-321-014', '+919876543223', 'Bayer Leverkusen DT'],
       ['Spectre XI', '662-540-015', '+919876543224', 'Napoli DT'],
-      ['Eclipse Legend', '773-199-016', '+919876543225', 'Tottenham DT']
+      ['Eclipse Legend', '773-199-016', '+919876543225', 'Tottenham DT'],
+      ['Storm Wing', '331-500-017', '+919876543226', 'Ajax DT'],
+      ['Nitro Striker', '442-601-018', '+919876543227', 'Benfica DT'],
+      ['Iron Wall', '553-702-019', '+919876543228', 'Porto DT'],
+      ['Falcon Play', '664-803-020', '+919876543229', 'Sporting DT'],
+      ['Cyber Ace', '775-904-021', '+919876543230', 'Sevilla DT'],
+      ['Nova Star', '886-015-022', '+919876543231', 'Valencia DT'],
+      ['Blizzard', '997-126-023', '+919876543232', 'Villarreal DT'],
+      ['Cosmo Kid', '108-237-024', '+919876543233', 'Roma DT'],
+      ['Laser Pass', '219-348-025', '+919876543234', 'Lazio DT'],
+      ['Matrix CF', '320-459-026', '+919876543235', 'Monaco DT'],
+      ['Bullet Shot', '431-560-027', '+919876543236', 'Lyon DT'],
+      ['Turbo GK', '542-671-028', '+919876543237', 'Marseille DT'],
+      ['Galaxy XI', '653-782-029', '+919876543238', 'Feyenoord DT'],
+      ['Orbit King', '764-893-030', '+919876543239', 'PSV DT'],
+      ['Rocket Foot', '875-904-031', '+919876543240', 'Celtic DT'],
+      ['Champion Ace', '986-015-032', '+919876543241', 'Rangers DT']
     ];
 
     let added = 0;
-    for (const [name, eid, wa, team] of sampleTeams.slice(0, count)) {
+    for (let i = 0; i < Math.min(count, sampleTeams.length); i++) {
+      const [name, eid, wa, team] = sampleTeams[i];
       const existing = await queryGet('SELECT id FROM players WHERE efootball_id = ?', [eid]);
       if (!existing) {
+        const fakeUtr = `UTR${Math.floor(100000000000 + Math.random() * 900000000000)}`;
         await queryRun(
-          'INSERT INTO players (name, efootball_id, whatsapp, team_name) VALUES (?, ?, ?, ?)',
-          [name, eid, wa, team]
+          'INSERT INTO players (name, efootball_id, whatsapp, team_name, utr_number, payment_status) VALUES (?, ?, ?, ?, ?, ?)',
+          [name, eid, wa, team, fakeUtr, 'verified']
         );
         added++;
       }
     }
 
-    res.json({ success: true, added, message: `Added ${added} demo players.` });
+    res.json({ success: true, added, message: `Added ${added} demo players with verified status.` });
   } catch (err: any) {
     res.status(500).json({ detail: err.message });
   }
@@ -310,5 +372,5 @@ if (fs.existsSync(distPath)) {
 
 const PORT_NUM = Number(PORT);
 app.listen(PORT_NUM, '0.0.0.0', () => {
-  console.log(`⚽ eFootball Tournament Backend (TypeScript) running on port ${PORT_NUM}`);
+  console.log(`⚽ Pantihal eFootball Tournament Backend (TypeScript) running on port ${PORT_NUM}`);
 });

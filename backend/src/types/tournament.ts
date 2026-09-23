@@ -5,6 +5,9 @@ export interface Player {
   whatsapp: string;
   team_name: string;
   seed: number | null;
+  payment_status: 'pending' | 'verified' | 'rejected';
+  utr_number: string;
+  group_assigned: 'A' | 'B' | 'C' | 'D' | null;
   registered_at: string;
   status: string;
 }
@@ -14,6 +17,7 @@ export interface PlayerRegisterInput {
   efootball_id: string;
   whatsapp: string;
   team_name?: string;
+  utr_number: string;
 }
 
 export interface TournamentMeta {
@@ -23,14 +27,25 @@ export interface TournamentMeta {
   admin_pin: string;
   max_players: number;
   match_time_mins: number;
+  event_date: string;
+  event_time: string;
+  entry_fee: number;
+  upi_id: string;
+  upi_name: string;
 }
 
 export interface TournamentStatusResponse {
   title: string;
   status: string;
   registered_count: number;
+  verified_count: number;
   max_players: number;
   match_time_mins: number;
+  event_date: string;
+  event_time: string;
+  entry_fee: number;
+  upi_id: string;
+  upi_name: string;
 }
 
 export interface MatchPlayer {
@@ -43,6 +58,7 @@ export interface MatchPlayer {
 
 export interface Match {
   id: number;
+  group_key: 'A' | 'B' | 'C' | 'D' | 'FINALS';
   round_name: string;
   round_index: number;
   match_number: number;
@@ -52,15 +68,19 @@ export interface Match {
   player2_score: number | null;
   player1_pk: number | null;
   player2_pk: number | null;
-  is_extra_time: number; // 0 or 1 in sqlite
+  is_extra_time: number;
   winner_id: number | null;
+  loser_id: number | null;
   next_match_id: number | null;
   next_match_slot: number | null;
+  loser_next_match_id: number | null; // For 3rd place match
+  loser_next_slot: number | null;
   status: 'scheduled' | 'completed' | 'bye';
 }
 
 export interface MatchResponse {
   id: number;
+  group_key: string;
   round_name: string;
   round_index: number;
   match_number: number;
@@ -72,20 +92,34 @@ export interface MatchResponse {
   player2_pk: number | null;
   is_extra_time: boolean;
   winner_id: number | null;
+  loser_id: number | null;
   next_match_id: number | null;
   next_match_slot: number | null;
   status: string;
 }
 
-export interface RoundResponse {
-  round_index: number;
-  round_name: string;
+export interface GroupBracket {
+  group_key: string;
+  group_name: string;
+  winner: MatchPlayer | null;
   matches: MatchResponse[];
 }
 
-export interface BracketResponse {
+export interface FinalPodium {
+  first: MatchPlayer | null;
+  second: MatchPlayer | null;
+  third: MatchPlayer | null;
+}
+
+export interface GroupTournamentResponse {
   tournament_status: string;
-  rounds: RoundResponse[];
+  groups: Record<string, GroupBracket>;
+  finals: {
+    semi_finals: MatchResponse[];
+    third_place: MatchResponse | null;
+    grand_final: MatchResponse | null;
+    podium: FinalPodium;
+  };
 }
 
 export interface ScoreUpdateInput {

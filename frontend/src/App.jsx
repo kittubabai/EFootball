@@ -14,7 +14,11 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('register');
   const [tournamentStatus, setTournamentStatus] = useState(null);
   const [players, setPlayers] = useState([]);
-  const [bracketData, setBracketData] = useState({ tournament_status: 'registration', rounds: [] });
+  const [bracketData, setBracketData] = useState({ 
+    tournament_status: 'registration', 
+    groups: {}, 
+    finals: { semi_finals: [], third_place: null, grand_final: null, podium: {} } 
+  });
   const [matches, setMatches] = useState([]);
   
   // Admin auth state
@@ -31,7 +35,6 @@ export default function App() {
       if (statusRes.ok) {
         const s = await statusRes.json();
         setTournamentStatus(s);
-        // If tournament is live or completed and tab is still register, automatically suggest bracket
         if (s.status !== 'registration' && activeTab === 'register' && !localStorage.getItem('tab_chosen')) {
           setActiveTab('bracket');
         }
@@ -84,11 +87,7 @@ export default function App() {
   };
 
   // Find if tournament is completed and who is the champion
-  const finalRound = bracketData.rounds.length > 0 ? bracketData.rounds[bracketData.rounds.length - 1] : null;
-  const finalMatch = finalRound?.matches?.length > 0 ? finalRound.matches[0] : null;
-  const champion = finalMatch?.winner_id 
-    ? (finalMatch.winner_id === finalMatch.player1?.id ? finalMatch.player1 : finalMatch.player2)
-    : null;
+  const champion = bracketData?.finals?.podium?.first || null;
 
   return (
     <div className="app-container">
