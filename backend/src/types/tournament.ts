@@ -9,6 +9,7 @@ export interface Player {
   utr_number: string;
   payment_screenshot?: string;
   group_assigned: 'A' | 'B' | 'C' | 'D' | null;
+  goals_scored?: number;
   registered_at: string;
   status: string;
 }

@@ -274,6 +274,54 @@ app.get('/api/matches', async (_req: Request, res: Response) => {
   }
 });
 
+// Top Scorers / Golden Boot Leaderboard
+app.get('/api/top-scorers', async (_req: Request, res: Response) => {
+  try {
+    const players = await queryAll<{
+      id: number;
+      name: string;
+      efootball_id: string;
+      team_name: string;
+      whatsapp: string;
+      group_assigned: string | null;
+      payment_status: string;
+      goals_scored: number;
+      match_goals: number;
+      matches_played: number;
+      total_goals: number;
+    }>(`
+      SELECT 
+        p.id,
+        p.name,
+        p.efootball_id,
+        p.team_name,
+        p.whatsapp,
+        p.group_assigned,
+        p.payment_status,
+        COALESCE(p.goals_scored, 0) as goals_scored,
+        COALESCE(SUM(CASE 
+          WHEN m.player1_id = p.id AND m.status = 'completed' THEN COALESCE(m.player1_score, 0)
+          WHEN m.player2_id = p.id AND m.status = 'completed' THEN COALESCE(m.player2_score, 0)
+          ELSE 0 
+        END), 0) as match_goals,
+        COUNT(DISTINCT CASE WHEN m.status = 'completed' THEN m.id END) as matches_played,
+        (COALESCE(p.goals_scored, 0) + COALESCE(SUM(CASE 
+          WHEN m.player1_id = p.id AND m.status = 'completed' THEN COALESCE(m.player1_score, 0)
+          WHEN m.player2_id = p.id AND m.status = 'completed' THEN COALESCE(m.player2_score, 0)
+          ELSE 0 
+        END), 0)) as total_goals
+      FROM players p
+      LEFT JOIN matches m ON (m.player1_id = p.id OR m.player2_id = p.id)
+      WHERE p.status = 'active'
+      GROUP BY p.id
+      ORDER BY total_goals DESC, match_goals DESC, p.name ASC
+    `);
+    res.json(players);
+  } catch (err: any) {
+    res.status(500).json({ detail: err.message });
+  }
+});
+
 // --- Admin Endpoints ---
 
 app.post('/api/admin/login', async (req: Request, res: Response) => {
@@ -319,6 +367,22 @@ app.all(['/api/admin/players/:id/verify-payment', '/api/admin/players/:id/paymen
         ? `Player verified! All ${maxPlayers} tournament slots are now confirmed.` 
         : `Player payment marked as ${status}. (${totalVerified}/${maxPlayers} slots filled)` 
     });
+  } catch (err: any) {
+    res.status(500).json({ detail: err.message });
+  }
+});
+
+// Admin endpoint to manually note down or update goals for any player
+app.put('/api/admin/players/:id/goals', verifyAdminPin, async (req: Request, res: Response) => {
+  try {
+    const rawId = req.params.id;
+    const playerId = parseInt(Array.isArray(rawId) ? rawId[0] : rawId, 10);
+    const goals = parseInt(req.body.goals ?? req.body.goals_scored, 10);
+    if (isNaN(goals) || goals < 0) {
+      return res.status(400).json({ detail: 'Goals must be a non-negative number.' });
+    }
+    await queryRun('UPDATE players SET goals_scored = ? WHERE id = ?', [goals, playerId]);
+    res.json({ success: true, message: `Updated manual bonus/extra goals to ${goals} for player.` });
   } catch (err: any) {
     res.status(500).json({ detail: err.message });
   }

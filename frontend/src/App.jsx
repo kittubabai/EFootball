@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { UserPlus, GitFork, Calendar, BookOpen, Trophy, QrCode } from 'lucide-react';
+import { UserPlus, GitFork, Calendar, BookOpen, Trophy, QrCode, Target } from 'lucide-react';
 
 import Navbar from './components/Navbar';
 import HeroBanner from './components/HeroBanner';
@@ -7,6 +7,7 @@ import RegistrationTab from './components/RegistrationTab';
 import PaymentTab from './components/PaymentTab';
 import BracketTab from './components/BracketTab';
 import FixturesTab from './components/FixturesTab';
+import TopScorersTab from './components/TopScorersTab';
 import RulesTab from './components/RulesTab';
 import AdminModal from './components/AdminModal';
 import ScoreModal from './components/ScoreModal';
@@ -159,6 +160,14 @@ export default function App() {
         </button>
 
         <button 
+          className={`tab-btn ${activeTab === 'scorers' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('scorers'); localStorage.setItem('tab_chosen', 'true'); }}
+        >
+          <Target size={17} />
+          <span>Top Scorers ⚽ (₹200)</span>
+        </button>
+
+        <button 
           className={`tab-btn ${activeTab === 'rules' ? 'active' : ''}`}
           onClick={() => { setActiveTab('rules'); localStorage.setItem('tab_chosen', 'true'); }}
         >
@@ -200,6 +209,14 @@ export default function App() {
             matches={matches}
             isAdmin={isAdmin}
             onOpenScoreModal={(match) => setActiveScoreMatch(match)}
+          />
+        )}
+
+        {activeTab === 'scorers' && (
+          <TopScorersTab 
+            isAdmin={isAdmin}
+            adminPin={adminPin}
+            onScoreUpdated={fetchData}
           />
         )}
 

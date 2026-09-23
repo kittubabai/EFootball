@@ -66,9 +66,9 @@ export default function HeroBanner({ tournamentStatus, playersCount }) {
             <span style={{ color: '#00ff87', fontWeight: '700' }}>🟢 Form: <strong>Excellent Only</strong></span>
           </div>
 
-          <div className="hero-stat-pill">
+          <div className="hero-stat-pill" style={{ borderColor: 'rgba(255, 190, 11, 0.4)', background: 'rgba(255, 190, 11, 0.08)' }}>
             <Trophy size={14} color="#ffbe0b" />
-            <span>Format: <strong>4 Groups &gt; Final 4</strong></span>
+            <span>Prizes: <strong style={{ color: '#ffbe0b' }}>₹2,400 + ₹200 Golden Boot</strong></span>
           </div>
         </div>
       </div>

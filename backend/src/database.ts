@@ -109,7 +109,8 @@ export async function initDb(): Promise<void> {
     "ALTER TABLE players ADD COLUMN payment_status TEXT DEFAULT 'pending'",
     "ALTER TABLE players ADD COLUMN utr_number TEXT DEFAULT ''",
     "ALTER TABLE players ADD COLUMN group_assigned TEXT DEFAULT NULL",
-    "ALTER TABLE players ADD COLUMN payment_screenshot TEXT DEFAULT ''"
+    "ALTER TABLE players ADD COLUMN payment_screenshot TEXT DEFAULT ''",
+    "ALTER TABLE players ADD COLUMN goals_scored INTEGER DEFAULT 0"
   ]) {
     try {
       await queryRun(alterSql);

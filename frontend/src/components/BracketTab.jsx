@@ -135,6 +135,9 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
             <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255, 190, 11, 0.4)', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
               <div style={{ fontSize: '2rem', marginBottom: '4px' }}>🥇</div>
               <div style={{ color: '#ffbe0b', fontWeight: '800', fontSize: '0.8rem', textTransform: 'uppercase' }}>1st Place (Champion)</div>
+              <div style={{ display: 'inline-block', background: 'rgba(255, 190, 11, 0.15)', color: '#ffbe0b', fontWeight: '800', fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', margin: '4px 0' }}>
+                ₹500 Cash (+₹300 Group = ₹800)
+              </div>
               <div style={{ fontSize: '1.2rem', fontWeight: '800', marginTop: '4px' }}>{podium.first ? podium.first.name : 'TBD'}</div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{podium.first?.team_name || ''}</div>
               <div style={{ fontSize: '0.72rem', color: 'var(--accent-cyan)', fontFamily: 'monospace', marginTop: '4px' }}>{podium.first?.efootball_id || ''}</div>
@@ -144,6 +147,9 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
             <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(192, 192, 192, 0.4)', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
               <div style={{ fontSize: '2rem', marginBottom: '4px' }}>🥈</div>
               <div style={{ color: '#c0c0c0', fontWeight: '800', fontSize: '0.8rem', textTransform: 'uppercase' }}>2nd Place (Runner-up)</div>
+              <div style={{ display: 'inline-block', background: 'rgba(192, 192, 192, 0.15)', color: '#c0c0c0', fontWeight: '800', fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', margin: '4px 0' }}>
+                ₹300 Cash (+₹300 Group = ₹600)
+              </div>
               <div style={{ fontSize: '1.2rem', fontWeight: '800', marginTop: '4px' }}>{podium.second ? podium.second.name : 'TBD'}</div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{podium.second?.team_name || ''}</div>
               <div style={{ fontSize: '0.72rem', color: 'var(--accent-cyan)', fontFamily: 'monospace', marginTop: '4px' }}>{podium.second?.efootball_id || ''}</div>
@@ -153,6 +159,9 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
             <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(205, 127, 50, 0.4)', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
               <div style={{ fontSize: '2rem', marginBottom: '4px' }}>🥉</div>
               <div style={{ color: '#cd7f32', fontWeight: '800', fontSize: '0.8rem', textTransform: 'uppercase' }}>3rd Place Winner</div>
+              <div style={{ display: 'inline-block', background: 'rgba(205, 127, 50, 0.15)', color: '#cd7f32', fontWeight: '800', fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', margin: '4px 0' }}>
+                ₹200 Cash (+₹300 Group = ₹500)
+              </div>
               <div style={{ fontSize: '1.2rem', fontWeight: '800', marginTop: '4px' }}>{podium.third ? podium.third.name : 'TBD'}</div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{podium.third?.team_name || ''}</div>
               <div style={{ fontSize: '0.72rem', color: 'var(--accent-cyan)', fontFamily: 'monospace', marginTop: '4px' }}>{podium.third?.efootball_id || ''}</div>
