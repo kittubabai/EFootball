@@ -300,7 +300,7 @@ app.post('/api/admin/seed-demo', verifyAdminPin, async (req: Request, res: Respo
 });
 
 // --- Static Frontend Serving for Production / All-In-One ---
-const distPath = path.resolve(__dirname, '../../frontend/dist');
+const distPath = process.env.FRONTEND_DIST || path.resolve(__dirname, '../../frontend/dist');
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
   app.get('*', (_req: Request, res: Response) => {
@@ -308,6 +308,7 @@ if (fs.existsSync(distPath)) {
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`⚽ eFootball Tournament Backend (TypeScript) running on http://127.0.0.1:${PORT}`);
+const PORT_NUM = Number(PORT);
+app.listen(PORT_NUM, '0.0.0.0', () => {
+  console.log(`⚽ eFootball Tournament Backend (TypeScript) running on port ${PORT_NUM}`);
 });
