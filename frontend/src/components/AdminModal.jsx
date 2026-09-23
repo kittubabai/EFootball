@@ -562,7 +562,7 @@ export default function AdminModal({
                       <button type="button" onClick={() => setEditPlayerForm(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>✕</button>
                     </div>
                     <form onSubmit={handleUpdatePlayer}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '8px', marginBottom: '10px' }}>
                         <div>
                           <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Name / IGN</label>
                           <input 
@@ -918,7 +918,7 @@ export default function AdminModal({
                 </div>
 
                 {/* Actions: Download and Send WhatsApp */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '10px', marginBottom: '10px' }}>
                   <button 
                     type="button" 
                     onClick={() => handleDownloadCertificate(currCertPlayer?.name || 'Player', manualRank || detectedRankTitle)}

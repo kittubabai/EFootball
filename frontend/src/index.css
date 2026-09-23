@@ -35,6 +35,16 @@
 }
 
 
+/* ============================================================
+   MOBILE RESPONSIVE — Full pass for phones (390px) & tablets
+   ============================================================ */
+
+/* 1. iOS Safari input zoom fix — font-size must be >= 16px on mobile */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
 
 * {
   margin: 0;
@@ -292,7 +302,41 @@ h1, h2, h3, h4, h5, h6 {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Mobile: hide secondary info badges, keep admin button always visible */
+@media (max-width: 600px) {
+  .header {
+    padding: 14px 0 12px;
+    gap: 10px;
+  }
+  .brand-title {
+    font-size: 1.1rem;
+  }
+  .brand-sub {
+    font-size: 0.7rem;
+  }
+  .brand-logo-badge {
+    width: 38px;
+    height: 38px;
+  }
+  /* Hide the match-time and player-count badges on very small screens */
+  .header-actions .badge:not(.badge-live):not(.badge-pending):not(.badge-completed) {
+    display: none;
+  }
+  /* Hide the player-count badge — keep only status + admin */
+  .header-actions > .badge.badge-pending:first-of-type {
+    display: none;
+  }
+  .btn-admin {
+    padding: 8px 10px;
+    font-size: 0.78rem;
+  }
+  .header-actions {
+    gap: 6px;
+  }
 }
 
 .badge {
@@ -349,6 +393,9 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 24px;
   overflow-x: auto;
   scrollbar-width: none;
+  /* Right-fade scroll hint so users know more tabs exist */
+  -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  mask-image: linear-gradient(to right, black 85%, transparent 100%);
 }
 
 .tabs-nav::-webkit-scrollbar {
@@ -437,6 +484,22 @@ h1, h2, h3, h4, h5, h6 {
     flex: 0 0 auto;
     padding: 8px 14px;
     font-size: 0.84rem;
+  }
+}
+
+/* On mobile, make tab buttons more compact for scrolling */
+@media (max-width: 600px) {
+  .tab-btn {
+    padding: 7px 10px;
+    font-size: 0.78rem;
+    gap: 4px;
+  }
+  .tab-btn span {
+    /* Shorten labels by hiding extra text on very small screens */
+    max-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
@@ -678,6 +741,18 @@ h1, h2, h3, h4, h5, h6 {
 .bracket-wrapper {
   overflow-x: auto;
   padding-bottom: 24px;
+  /* Show a horizontal scroll hint on mobile */
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+}
+
+/* Mobile bracket scroll hint gradient */
+@media (max-width: 768px) {
+  .bracket-wrapper {
+    position: relative;
+    -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%);
+    mask-image: linear-gradient(to right, black 90%, transparent 100%);
+  }
 }
 
 .bracket-container {
@@ -810,8 +885,15 @@ h1, h2, h3, h4, h5, h6 {
 /* Fixtures List */
 .fixtures-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 18px;
+}
+
+@media (max-width: 600px) {
+  .fixtures-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }
 
 .fixture-card {
@@ -899,10 +981,10 @@ h1, h2, h3, h4, h5, h6 {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 9999;
-  padding: 16px;
+  padding: 12px;
   overflow-y: auto;
 }
 
@@ -910,15 +992,31 @@ h1, h2, h3, h4, h5, h6 {
   background: #0f1627;
   border: 1px solid var(--border-glow);
   border-radius: var(--radius-lg);
-  width: 100%;
+  width: 95vw;
   max-width: 640px;
   padding: 24px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 229, 255, 0.15);
   position: relative;
-  max-height: 90vh;
+  max-height: 92vh;
   overflow-y: auto;
   margin: auto;
   animation: modalPopIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (max-width: 600px) {
+  .modal-overlay,
+  .modal-backdrop {
+    padding: 8px;
+    align-items: flex-start;
+  }
+  .modal-content {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 14px;
+    padding: 16px;
+    max-height: 95vh;
+    margin-top: 8px;
+  }
 }
 
 @keyframes modalPopIn {
@@ -1008,4 +1106,83 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+/* ============================================================
+   MOBILE POLISH — Final UX touches for phones
+   ============================================================ */
+
+/* Ensure all interactive/tap elements meet 44px minimum touch target */
+@media (max-width: 768px) {
+  .btn {
+    min-height: 44px;
+    padding: 10px 18px;
+  }
+  .btn-admin {
+    min-height: 40px;
+  }
+  /* Admin action buttons (edit, verify, etc.) */
+  button[style*="fontSize: '0.76rem'"],
+  button[style*="fontSize: '0.78rem'"],
+  button[style*="fontSize: '0.8rem'"] {
+    min-height: 36px;
+  }
+
+  /* Glass cards: smaller padding on phones */
+  .glass-card {
+    padding: 16px;
+  }
+
+  /* Registration list: allow taller on phones since layout is 1-col */
+  .registered-players-list {
+    max-height: 360px;
+  }
+
+  /* Hero stat pills wrap on mobile */
+  .hero-stats-row {
+    gap: 8px;
+  }
+  .hero-stat-pill {
+    padding: 5px 10px;
+    font-size: 0.74rem;
+  }
+
+  /* Player cards: wrap content on tiny screens */
+  .player-item-card {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Bracket: slightly smaller match cards on mobile for legibility */
+  .bracket-round {
+    width: 220px;
+  }
+  .participant-name {
+    font-size: 0.8rem;
+  }
+
+  /* Score modal and prizes modal full-width on mobile */
+  .modal-overlay > div,
+  .modal-backdrop > div {
+    width: 100%;
+  }
+}
+
+/* Portrait phones specifically */
+@media (max-width: 480px) {
+  .app-container {
+    padding: 0 10px 40px 10px;
+  }
+  .hero-title-main {
+    font-size: 1.35rem;
+  }
+  .brand-title {
+    font-size: 1rem;
+  }
+  /* Admin modal tabs: wrap so all 3 fit */
+  .tab-btn {
+    flex: 0 0 auto;
+    font-size: 0.74rem;
+    padding: 6px 8px;
+  }
 }
