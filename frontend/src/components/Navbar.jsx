@@ -1,7 +1,7 @@
 import React from 'react';
-import { Trophy, ShieldCheck, Lock, Users, Clock, Sun, Moon } from 'lucide-react';
+import { Trophy, ShieldCheck, Lock, Users, Clock } from 'lucide-react';
 
-export default function Navbar({ tournamentStatus, isAdmin, onOpenAdmin, theme, onToggleTheme }) {
+export default function Navbar({ tournamentStatus, isAdmin, onOpenAdmin }) {
   const getStatusBadge = () => {
     switch (tournamentStatus?.status) {
       case 'in_progress':
@@ -49,23 +49,6 @@ export default function Navbar({ tournamentStatus, isAdmin, onOpenAdmin, theme, 
           <Clock size={14} />
           <span>{tournamentStatus?.match_time_mins || 14} Mins Match (7m/half)</span>
         </div>
-
-        {/* Dark / Light Mode Toggle */}
-        <button 
-          className="btn btn-outline" 
-          onClick={onToggleTheme}
-          title={theme === 'light' ? 'Switch to Dark Theme' : 'Switch to Light Theme'}
-          style={{ 
-            padding: '6px 12px', 
-            fontSize: '0.8rem', 
-            gap: '6px',
-            borderColor: 'var(--border-color)',
-            background: 'rgba(255, 255, 255, 0.05)'
-          }}
-        >
-          {theme === 'light' ? <Moon size={15} color="#0284c7" /> : <Sun size={15} color="#ffbe0b" />}
-          <span>{theme === 'light' ? 'Dark' : 'Light'}</span>
-        </button>
 
         <button 
           className={`btn btn-admin ${isAdmin ? 'logged-in' : ''}`}
