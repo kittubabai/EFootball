@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: efootball-tournament
+    name: jadupur-e-football-tournament
     runtime: node
     plan: free
     buildCommand: npm run install:all && npm run build
