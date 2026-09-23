@@ -1,51 +1,41 @@
-import sqlite3 from 'sqlite3';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import pg from 'pg';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const { Pool } = pg;
 
-const DB_PATH = path.join(__dirname, '..', 'tournament.db');
-
-export const db = new sqlite3.Database(DB_PATH, (err) => {
-  if (err) {
-    console.error('Failed to connect to SQLite database:', err.message);
-  } else {
-    console.log('Connected to SQLite database at:', DB_PATH);
-  }
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
 });
 
-// Promisified SQLite helpers
-export const queryAll = <T>(sql: string, params: any[] = []): Promise<T[]> => {
-  return new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows as T[]);
-    });
-  });
+pool.on('error', (err) => {
+  console.error('Unexpected PostgreSQL pool error:', err.message);
+});
+
+// Promisified helpers that mirror the old SQLite API surface
+
+export const queryAll = async <T>(sql: string, params: any[] = []): Promise<T[]> => {
+  const result = await pool.query(sql, params);
+  return result.rows as T[];
 };
 
-export const queryGet = <T>(sql: string, params: any[] = []): Promise<T | null> => {
-  return new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => {
-      if (err) reject(err);
-      else resolve((row as T) || null);
-    });
-  });
+export const queryGet = async <T>(sql: string, params: any[] = []): Promise<T | null> => {
+  const result = await pool.query(sql, params);
+  return (result.rows[0] as T) || null;
 };
 
-export const queryRun = (sql: string, params: any[] = []): Promise<{ lastID: number; changes: number }> => {
-  return new Promise((resolve, reject) => {
-    db.run(sql, params, function (err) {
-      if (err) reject(err);
-      else resolve({ lastID: this.lastID, changes: this.changes });
-    });
-  });
+export const queryRun = async (sql: string, params: any[] = []): Promise<{ lastID: number; changes: number }> => {
+  const result = await pool.query(sql, params);
+  return {
+    lastID: result.rows[0]?.id ?? 0,
+    changes: result.rowCount ?? 0
+  };
 };
 
 export async function initDb(): Promise<void> {
-  // 1. Meta configuration table
-  await queryRun(`
+  // 1. tournament_meta table
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS tournament_meta (
       id INTEGER PRIMARY KEY,
       title TEXT NOT NULL,
@@ -63,7 +53,7 @@ export async function initDb(): Promise<void> {
 
   const existingMeta = await queryGet('SELECT id FROM tournament_meta WHERE id = 1');
   if (!existingMeta) {
-    await queryRun(`
+    await pool.query(`
       INSERT INTO tournament_meta (
         id, title, status, admin_pin, max_players, match_time_mins,
         event_date, event_time, entry_fee, upi_id, upi_name
@@ -72,26 +62,12 @@ export async function initDb(): Promise<void> {
         '18th October 2026', '11:00 AM onwards', 100, 'sayantanbabu2000-1@oksbi', 'Sayantan Chakraborty'
       )
     `);
-  } else {
-    // Ensure all columns exist for migrations
-    for (const alterSql of [
-      "ALTER TABLE tournament_meta ADD COLUMN event_date TEXT DEFAULT '18th October 2026'",
-      "ALTER TABLE tournament_meta ADD COLUMN event_time TEXT DEFAULT '11:00 AM onwards'",
-      "ALTER TABLE tournament_meta ADD COLUMN entry_fee INTEGER DEFAULT 100",
-      "ALTER TABLE tournament_meta ADD COLUMN upi_id TEXT DEFAULT 'sayantanbabu2000-1@oksbi'",
-      "ALTER TABLE tournament_meta ADD COLUMN upi_name TEXT DEFAULT 'Sayantan Chakraborty'"
-    ]) {
-      try {
-        await queryRun(alterSql);
-      } catch (_) {}
-    }
-    await queryRun("UPDATE tournament_meta SET match_time_mins = 14 WHERE id = 1");
   }
 
-  // 2. Players table
-  await queryRun(`
+  // 2. players table
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS players (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
       efootball_id TEXT NOT NULL UNIQUE,
       whatsapp TEXT NOT NULL,
@@ -99,28 +75,32 @@ export async function initDb(): Promise<void> {
       seed INTEGER DEFAULT NULL,
       payment_status TEXT NOT NULL DEFAULT 'pending',
       utr_number TEXT NOT NULL DEFAULT '',
+      payment_screenshot TEXT DEFAULT '',
       group_assigned TEXT DEFAULT NULL,
-      registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      goals_scored INTEGER DEFAULT 0,
+      registered_at TIMESTAMP DEFAULT NOW(),
       status TEXT DEFAULT 'active'
     )
   `);
 
-  for (const alterSql of [
-    "ALTER TABLE players ADD COLUMN payment_status TEXT DEFAULT 'pending'",
-    "ALTER TABLE players ADD COLUMN utr_number TEXT DEFAULT ''",
-    "ALTER TABLE players ADD COLUMN group_assigned TEXT DEFAULT NULL",
-    "ALTER TABLE players ADD COLUMN payment_screenshot TEXT DEFAULT ''",
-    "ALTER TABLE players ADD COLUMN goals_scored INTEGER DEFAULT 0"
-  ]) {
+  // Safe column additions using IF NOT EXISTS (PostgreSQL 9.6+)
+  const playerCols: [string, string][] = [
+    ['payment_status', "TEXT DEFAULT 'pending'"],
+    ['utr_number', "TEXT DEFAULT ''"],
+    ['group_assigned', 'TEXT DEFAULT NULL'],
+    ['payment_screenshot', "TEXT DEFAULT ''"],
+    ['goals_scored', 'INTEGER DEFAULT 0'],
+  ];
+  for (const [col, type] of playerCols) {
     try {
-      await queryRun(alterSql);
+      await pool.query(`ALTER TABLE players ADD COLUMN IF NOT EXISTS ${col} ${type}`);
     } catch (_) {}
   }
 
-  // 3. Matches table with 4-group & finals support
-  await queryRun(`
+  // 3. matches table
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS matches (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       group_key TEXT NOT NULL DEFAULT 'A',
       round_name TEXT NOT NULL,
       round_index INTEGER NOT NULL,
@@ -138,22 +118,23 @@ export async function initDb(): Promise<void> {
       next_match_slot INTEGER NULL,
       loser_next_match_id INTEGER NULL,
       loser_next_slot INTEGER NULL,
-      status TEXT DEFAULT 'scheduled',
-      FOREIGN KEY (player1_id) REFERENCES players (id),
-      FOREIGN KEY (player2_id) REFERENCES players (id),
-      FOREIGN KEY (winner_id) REFERENCES players (id),
-      FOREIGN KEY (loser_id) REFERENCES players (id)
+      status TEXT DEFAULT 'scheduled'
     )
   `);
 
-  for (const alterSql of [
-    "ALTER TABLE matches ADD COLUMN group_key TEXT DEFAULT 'A'",
-    "ALTER TABLE matches ADD COLUMN loser_id INTEGER NULL",
-    "ALTER TABLE matches ADD COLUMN loser_next_match_id INTEGER NULL",
-    "ALTER TABLE matches ADD COLUMN loser_next_slot INTEGER NULL"
-  ]) {
+  const matchCols: [string, string][] = [
+    ['group_key', "TEXT DEFAULT 'A'"],
+    ['loser_id', 'INTEGER NULL'],
+    ['loser_next_match_id', 'INTEGER NULL'],
+    ['loser_next_slot', 'INTEGER NULL'],
+  ];
+  for (const [col, type] of matchCols) {
     try {
-      await queryRun(alterSql);
+      await pool.query(`ALTER TABLE matches ADD COLUMN IF NOT EXISTS ${col} ${type}`);
     } catch (_) {}
   }
+
+  console.log('✅ Supabase PostgreSQL database initialised successfully.');
 }
+
+

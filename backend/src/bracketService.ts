@@ -33,7 +33,7 @@ export async function generateGroupTournament(shuffleSeeds: boolean = true) {
   playerList.forEach((p, idx) => {
     const group = groupKeys[idx % 4];
     groupBuckets[group].push(p);
-    queryRun('UPDATE players SET group_assigned = ?, seed = ? WHERE id = ?', [group, idx + 1, p.id]);
+    queryRun('UPDATE players SET group_assigned = $1, seed = $2 WHERE id = $3', [group, idx + 1, p.id]);
   });
 
   // Ensure each group has 8 slots (pad with null for byes)
@@ -54,7 +54,7 @@ export async function generateGroupTournament(shuffleSeeds: boolean = true) {
   const gfRes = await queryRun(`
     INSERT INTO matches (
       group_key, round_name, round_index, match_number, status
-    ) VALUES ('FINALS', 'Grand Final (1st & 2nd Place)', 5, 2, 'scheduled')
+    ) VALUES ('FINALS', 'Grand Final (1st & 2nd Place)', 5, 2, 'scheduled') RETURNING id
   `);
   const grandFinalId = gfRes.lastID;
 
@@ -62,7 +62,7 @@ export async function generateGroupTournament(shuffleSeeds: boolean = true) {
   const tpRes = await queryRun(`
     INSERT INTO matches (
       group_key, round_name, round_index, match_number, status
-    ) VALUES ('FINALS', '3rd Place Playoff (3rd Position)', 5, 1, 'scheduled')
+    ) VALUES ('FINALS', '3rd Place Playoff (3rd Position)', 5, 1, 'scheduled') RETURNING id
   `);
   const thirdPlaceId = tpRes.lastID;
 
@@ -72,7 +72,7 @@ export async function generateGroupTournament(shuffleSeeds: boolean = true) {
       group_key, round_name, round_index, match_number,
       next_match_id, next_match_slot,
       loser_next_match_id, loser_next_slot, status
-    ) VALUES ('FINALS', 'Semi-Final 1 (Winner A vs Winner B)', 4, 1, ?, 1, ?, 1, 'scheduled')
+    ) VALUES ('FINALS', 'Semi-Final 1 (Winner A vs Winner B)', 4, 1, $1, 1, $2, 1, 'scheduled') RETURNING id
   `, [grandFinalId, thirdPlaceId]);
   const sf1Id = sf1Res.lastID;
 
@@ -82,7 +82,7 @@ export async function generateGroupTournament(shuffleSeeds: boolean = true) {
       group_key, round_name, round_index, match_number,
       next_match_id, next_match_slot,
       loser_next_match_id, loser_next_slot, status
-    ) VALUES ('FINALS', 'Semi-Final 2 (Winner C vs Winner D)', 4, 2, ?, 2, ?, 2, 'scheduled')
+    ) VALUES ('FINALS', 'Semi-Final 2 (Winner C vs Winner D)', 4, 2, $1, 2, $2, 2, 'scheduled') RETURNING id
   `, [grandFinalId, thirdPlaceId]);
   const sf2Id = sf2Res.lastID;
 
@@ -104,7 +104,7 @@ export async function generateGroupTournament(shuffleSeeds: boolean = true) {
       INSERT INTO matches (
         group_key, round_name, round_index, match_number,
         next_match_id, next_match_slot, status
-      ) VALUES (?, ?, 3, 1, ?, ?, 'scheduled')
+      ) VALUES ($1, $2, 3, 1, $3, $4, 'scheduled') RETURNING id
     `, [g, `Group ${g} Final`, target.nextId, target.nextSlot]);
     const groupFinalId = gfMatch.lastID;
 
@@ -113,7 +113,7 @@ export async function generateGroupTournament(shuffleSeeds: boolean = true) {
       INSERT INTO matches (
         group_key, round_name, round_index, match_number,
         next_match_id, next_match_slot, status
-      ) VALUES (?, ?, 2, 1, ?, 1, 'scheduled')
+      ) VALUES ($1, $2, 2, 1, $3, 1, 'scheduled') RETURNING id
     `, [g, `Group ${g} Semi-Final 1`, groupFinalId]);
     const gsf1Id = gsf1.lastID;
 
@@ -121,7 +121,7 @@ export async function generateGroupTournament(shuffleSeeds: boolean = true) {
       INSERT INTO matches (
         group_key, round_name, round_index, match_number,
         next_match_id, next_match_slot, status
-      ) VALUES (?, ?, 2, 2, ?, 2, 'scheduled')
+      ) VALUES ($1, $2, 2, 2, $3, 2, 'scheduled') RETURNING id
     `, [g, `Group ${g} Semi-Final 2`, groupFinalId]);
     const gsf2Id = gsf2.lastID;
 
@@ -143,7 +143,7 @@ export async function generateGroupTournament(shuffleSeeds: boolean = true) {
           group_key, round_name, round_index, match_number,
           player1_id, player2_id,
           next_match_id, next_match_slot, status
-        ) VALUES (?, ?, 1, ?, ?, ?, ?, ?, 'scheduled')
+        ) VALUES ($1, $2, 1, $3, $4, $5, $6, $7, 'scheduled') RETURNING id
       `, [
         g,
         `Group ${g} Match ${i + 1}`,
@@ -159,18 +159,18 @@ export async function generateGroupTournament(shuffleSeeds: boolean = true) {
       // Handle byes
       if (p1 && !p2) {
         await queryRun(
-          "UPDATE matches SET winner_id = ?, status = 'bye', player1_score = 1, player2_score = 0 WHERE id = ?",
+          "UPDATE matches SET winner_id = $1, status = 'bye', player1_score = 1, player2_score = 0 WHERE id = $2",
           [p1.id, qfMatchId]
         );
         const col = qfTarget.slot === 1 ? 'player1_id' : 'player2_id';
-        await queryRun(`UPDATE matches SET ${col} = ? WHERE id = ?`, [p1.id, qfTarget.id]);
+        await queryRun(`UPDATE matches SET ${col} = $1 WHERE id = $2`, [p1.id, qfTarget.id]);
       } else if (p2 && !p1) {
         await queryRun(
-          "UPDATE matches SET winner_id = ?, status = 'bye', player1_score = 0, player2_score = 1 WHERE id = ?",
+          "UPDATE matches SET winner_id = $1, status = 'bye', player1_score = 0, player2_score = 1 WHERE id = $2",
           [p2.id, qfMatchId]
         );
         const col = qfTarget.slot === 1 ? 'player1_id' : 'player2_id';
-        await queryRun(`UPDATE matches SET ${col} = ? WHERE id = ?`, [p2.id, qfTarget.id]);
+        await queryRun(`UPDATE matches SET ${col} = $1 WHERE id = $2`, [p2.id, qfTarget.id]);
       }
     }
   }
@@ -186,7 +186,7 @@ export async function generateGroupTournament(shuffleSeeds: boolean = true) {
 }
 
 export async function updateMatchScore(matchId: number, input: ScoreUpdateInput) {
-  const match = await queryGet<Match>('SELECT * FROM matches WHERE id = ?', [matchId]);
+  const match = await queryGet<Match>('SELECT * FROM matches WHERE id = $1', [matchId]);
   if (!match) {
     throw new Error(`Match with ID ${matchId} not found.`);
   }
@@ -232,10 +232,10 @@ export async function updateMatchScore(matchId: number, input: ScoreUpdateInput)
   // Update current match
   await queryRun(
     `UPDATE matches SET
-      player1_score = ?, player2_score = ?,
-      player1_pk = ?, player2_pk = ?,
-      is_extra_time = ?, winner_id = ?, loser_id = ?, status = 'completed'
-    WHERE id = ?`,
+      player1_score = $1, player2_score = $2,
+      player1_pk = $3, player2_pk = $4,
+      is_extra_time = $5, winner_id = $6, loser_id = $7, status = 'completed'
+    WHERE id = $8`,
     [
       input.player1_score,
       input.player2_score,
@@ -251,13 +251,12 @@ export async function updateMatchScore(matchId: number, input: ScoreUpdateInput)
   // Advance winner to next match if applicable
   if (match.next_match_id) {
     const col = match.next_match_slot === 1 ? 'player1_id' : 'player2_id';
-    await queryRun(`UPDATE matches SET ${col} = ? WHERE id = ?`, [winnerId, match.next_match_id]);
+    await queryRun(`UPDATE matches SET ${col} = $1 WHERE id = $2`, [winnerId, match.next_match_id]);
   }
 
-  // Advance loser to 3rd place match if this was a Semi-Final
   if (match.loser_next_match_id && loserId) {
     const loserCol = match.loser_next_slot === 1 ? 'player1_id' : 'player2_id';
-    await queryRun(`UPDATE matches SET ${loserCol} = ? WHERE id = ?`, [loserId, match.loser_next_match_id]);
+    await queryRun(`UPDATE matches SET ${loserCol} = $1 WHERE id = $2`, [loserId, match.loser_next_match_id]);
   }
 
   // If Grand Final completed, mark tournament completed

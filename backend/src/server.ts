@@ -42,7 +42,7 @@ const verifyAdminPin = async (req: Request, res: Response, next: NextFunction) =
 
 const fetchPlayerDetail = async (playerId: number | null): Promise<MatchPlayer | null> => {
   if (!playerId) return null;
-  const p = await queryGet<Player>('SELECT id, name, efootball_id, team_name, whatsapp FROM players WHERE id = ?', [playerId]);
+  const p = await queryGet<Player>('SELECT id, name, efootball_id, team_name, whatsapp FROM players WHERE id = $1', [playerId]);
   if (!p) return null;
   return {
     id: p.id,
@@ -83,14 +83,14 @@ const mapMatchToResponse = async (m: Match): Promise<MatchResponse> => {
 app.get('/api/status', async (_req: Request, res: Response) => {
   try {
     const meta = await queryGet<TournamentMeta>('SELECT * FROM tournament_meta WHERE id = 1');
-    const totalCount = await queryGet<{ cnt: number }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active'");
-    const verifiedCount = await queryGet<{ cnt: number }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified'");
+    const totalCount = await queryGet<{ cnt: string }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active'");
+    const verifiedCount = await queryGet<{ cnt: string }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified'");
 
     const result: TournamentStatusResponse = {
       title: meta?.title || 'Pantihal eFootball Cup 2026',
       status: meta?.status || 'registration',
-      registered_count: totalCount?.cnt || 0,
-      verified_count: verifiedCount?.cnt || 0,
+      registered_count: parseInt(String(totalCount?.cnt || '0'), 10),
+      verified_count: parseInt(String(verifiedCount?.cnt || '0'), 10),
       max_players: meta?.max_players || 32,
       match_time_mins: meta?.match_time_mins || 14,
       event_date: meta?.event_date || '18th October 2026',
@@ -119,29 +119,29 @@ app.post('/api/players/register', async (req: Request, res: Response) => {
     }
 
     // Unlimited registrations allowed until 32 VERIFIED PAYMENTS are confirmed
-    const verifiedRow = await queryGet<{ cnt: number }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified'");
-    if ((verifiedRow?.cnt || 0) >= (meta?.max_players || 32)) {
+    const verifiedRow = await queryGet<{ cnt: string }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified'");
+    if ((parseInt(String(verifiedRow?.cnt || '0'), 10)) >= (meta?.max_players || 32)) {
       return res.status(400).json({ detail: 'Registration is now closed because all 32 tournament slots have been filled with verified payments.' });
     }
 
-    const existing = await queryGet<Player>('SELECT id FROM players WHERE efootball_id = ?', [efootball_id.trim()]);
+    const existing = await queryGet<Player>('SELECT id FROM players WHERE efootball_id = $1', [efootball_id.trim()]);
     if (existing) {
       return res.status(400).json({ detail: 'This eFootball User ID is already registered.' });
     }
 
     if (utr_number && utr_number.trim()) {
-      const existingUtr = await queryGet<Player>('SELECT id FROM players WHERE utr_number = ?', [utr_number.trim()]);
+      const existingUtr = await queryGet<Player>('SELECT id FROM players WHERE utr_number = $1', [utr_number.trim()]);
       if (existingUtr) {
         return res.status(400).json({ detail: 'This UTR / Transaction ID has already been submitted.' });
       }
     }
 
     const runRes = await queryRun(
-      'INSERT INTO players (name, efootball_id, whatsapp, team_name, utr_number, payment_screenshot, payment_status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO players (name, efootball_id, whatsapp, team_name, utr_number, payment_screenshot, payment_status) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
       [name.trim(), efootball_id.trim(), whatsapp.trim(), (team_name || '').trim(), (utr_number || '').trim(), payment_screenshot || '', 'pending']
     );
 
-    const newPlayer = await queryGet<Player>('SELECT * FROM players WHERE id = ?', [runRes.lastID]);
+    const newPlayer = await queryGet<Player>('SELECT * FROM players WHERE id = $1', [runRes.lastID]);
     res.status(201).json(newPlayer);
   } catch (err: any) {
     res.status(500).json({ detail: err.message });
@@ -161,8 +161,8 @@ app.post(['/api/players/:id/submit-payment', '/api/players/:id/submit-utr'], asy
     }
 
     // Check if 32 payments are already verified
-    const verifiedRow = await queryGet<{ cnt: number }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified'");
-    if ((verifiedRow?.cnt || 0) >= (meta?.max_players || 32)) {
+    const verifiedRow = await queryGet<{ cnt: string }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified'");
+    if ((parseInt(String(verifiedRow?.cnt || '0'), 10)) >= (meta?.max_players || 32)) {
       return res.status(400).json({ detail: 'All 32 tournament slots are filled with confirmed payments! No more payments are being accepted.' });
     }
 
@@ -171,14 +171,14 @@ app.post(['/api/players/:id/submit-payment', '/api/players/:id/submit-utr'], asy
     }
 
     if (utr_number && utr_number.trim()) {
-      const existingUtr = await queryGet<Player>('SELECT id FROM players WHERE utr_number = ? AND id != ?', [utr_number.trim(), playerId]);
+      const existingUtr = await queryGet<Player>('SELECT id FROM players WHERE utr_number = $1 AND id != $2', [utr_number.trim(), playerId]);
       if (existingUtr) {
         return res.status(400).json({ detail: 'This UTR / Transaction ID has already been submitted by another player.' });
       }
     }
 
     await queryRun(
-      'UPDATE players SET utr_number = COALESCE(NULLIF(?, ""), utr_number), payment_screenshot = COALESCE(NULLIF(?, ""), payment_screenshot) WHERE id = ?',
+      'UPDATE players SET utr_number = COALESCE(NULLIF($1, \'\'), utr_number), payment_screenshot = COALESCE(NULLIF($2, \'\'), payment_screenshot) WHERE id = $3',
       [(utr_number || '').trim(), payment_screenshot || '', playerId]
     );
 
@@ -348,19 +348,19 @@ app.all(['/api/admin/players/:id/verify-payment', '/api/admin/players/:id/paymen
     const maxPlayers = meta?.max_players || 32;
 
     if (status === 'verified') {
-      const verifiedRow = await queryGet<{ cnt: number }>(
-        "SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified' AND id != ?",
+      const verifiedRow = await queryGet<{ cnt: string }>(
+        "SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified' AND id != $1",
         [playerId]
       );
-      if ((verifiedRow?.cnt || 0) >= maxPlayers) {
+      if ((parseInt(String(verifiedRow?.cnt || '0'), 10)) >= maxPlayers) {
         return res.status(400).json({ detail: `Cannot verify: All ${maxPlayers} tournament slots have already been filled with verified payments!` });
       }
     }
 
-    await queryRun('UPDATE players SET payment_status = ? WHERE id = ?', [status, playerId]);
+    await queryRun('UPDATE players SET payment_status = $1 WHERE id = $2', [status, playerId]);
 
-    const updatedCount = await queryGet<{ cnt: number }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified'");
-    const totalVerified = updatedCount?.cnt || 0;
+    const updatedCount = await queryGet<{ cnt: string }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified'");
+    const totalVerified = parseInt(String(updatedCount?.cnt || '0'), 10);
 
     res.json({ 
       success: true, 
@@ -382,7 +382,7 @@ app.put('/api/admin/players/:id/goals', verifyAdminPin, async (req: Request, res
     if (isNaN(goals) || goals < 0) {
       return res.status(400).json({ detail: 'Goals must be a non-negative number.' });
     }
-    await queryRun('UPDATE players SET goals_scored = ? WHERE id = ?', [goals, playerId]);
+    await queryRun('UPDATE players SET goals_scored = $1 WHERE id = $2', [goals, playerId]);
     res.json({ success: true, message: `Updated manual bonus/extra goals to ${goals} for player.` });
   } catch (err: any) {
     res.status(500).json({ detail: err.message });
@@ -420,7 +420,7 @@ app.put('/api/admin/players/:id', verifyAdminPin, async (req: Request, res: Resp
     }
 
     await queryRun(
-      'UPDATE players SET name = ?, efootball_id = ?, whatsapp = ?, team_name = ? WHERE id = ?',
+      'UPDATE players SET name = $1, efootball_id = $2, whatsapp = $3, team_name = $4 WHERE id = $5',
       [name.trim(), efootball_id.trim(), whatsapp.trim(), (team_name || '').trim(), playerId]
     );
 
@@ -434,7 +434,7 @@ app.delete('/api/admin/players/:id', verifyAdminPin, async (req: Request, res: R
   try {
     const rawId = req.params.id;
     const playerId = parseInt(Array.isArray(rawId) ? rawId[0] : rawId, 10);
-    await queryRun('DELETE FROM players WHERE id = ?', [playerId]);
+    await queryRun('DELETE FROM players WHERE id = $1', [playerId]);
     res.json({ success: true, message: 'Player removed successfully.' });
   } catch (err: any) {
     res.status(500).json({ detail: err.message });
@@ -496,11 +496,11 @@ app.post('/api/admin/seed-demo', verifyAdminPin, async (req: Request, res: Respo
     let added = 0;
     for (let i = 0; i < Math.min(count, sampleTeams.length); i++) {
       const [name, eid, wa, team] = sampleTeams[i];
-      const existing = await queryGet('SELECT id FROM players WHERE efootball_id = ?', [eid]);
+      const existing = await queryGet('SELECT id FROM players WHERE efootball_id = $1', [eid]);
       if (!existing) {
         const fakeUtr = `UTR${Math.floor(100000000000 + Math.random() * 900000000000)}`;
         await queryRun(
-          'INSERT INTO players (name, efootball_id, whatsapp, team_name, utr_number, payment_status) VALUES (?, ?, ?, ?, ?, ?)',
+          'INSERT INTO players (name, efootball_id, whatsapp, team_name, utr_number, payment_status) VALUES ($1, $2, $3, $4, $5, $6)',
           [name, eid, wa, team, fakeUtr, 'verified']
         );
         added++;
