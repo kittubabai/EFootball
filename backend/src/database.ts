@@ -52,7 +52,7 @@ export async function initDb(): Promise<void> {
       status TEXT NOT NULL DEFAULT 'registration',
       admin_pin TEXT NOT NULL DEFAULT '1234',
       max_players INTEGER NOT NULL DEFAULT 32,
-      match_time_mins INTEGER NOT NULL DEFAULT 7,
+      match_time_mins INTEGER NOT NULL DEFAULT 14,
       event_date TEXT NOT NULL DEFAULT '18th October 2026',
       event_time TEXT NOT NULL DEFAULT '11:00 AM onwards',
       entry_fee INTEGER NOT NULL DEFAULT 100,
@@ -68,19 +68,24 @@ export async function initDb(): Promise<void> {
         id, title, status, admin_pin, max_players, match_time_mins,
         event_date, event_time, entry_fee, upi_id, upi_name
       ) VALUES (
-        1, 'Pantihal eFootball Cup 2026', 'registration', '1234', 32, 7,
+        1, 'Pantihal eFootball Cup 2026', 'registration', '1234', 32, 14,
         '18th October 2026', '11:00 AM onwards', 100, 'sayantanbabu2000-1@oksbi', 'Sayantan Chakraborty'
       )
     `);
   } else {
     // Ensure all columns exist for migrations
-    try {
-      await queryRun("ALTER TABLE tournament_meta ADD COLUMN event_date TEXT DEFAULT '18th October 2026'");
-      await queryRun("ALTER TABLE tournament_meta ADD COLUMN event_time TEXT DEFAULT '11:00 AM onwards'");
-      await queryRun("ALTER TABLE tournament_meta ADD COLUMN entry_fee INTEGER DEFAULT 100");
-      await queryRun("ALTER TABLE tournament_meta ADD COLUMN upi_id TEXT DEFAULT 'sayantanbabu2000-1@oksbi'");
-      await queryRun("ALTER TABLE tournament_meta ADD COLUMN upi_name TEXT DEFAULT 'Sayantan Chakraborty'");
-    } catch (_) {}
+    for (const alterSql of [
+      "ALTER TABLE tournament_meta ADD COLUMN event_date TEXT DEFAULT '18th October 2026'",
+      "ALTER TABLE tournament_meta ADD COLUMN event_time TEXT DEFAULT '11:00 AM onwards'",
+      "ALTER TABLE tournament_meta ADD COLUMN entry_fee INTEGER DEFAULT 100",
+      "ALTER TABLE tournament_meta ADD COLUMN upi_id TEXT DEFAULT 'sayantanbabu2000-1@oksbi'",
+      "ALTER TABLE tournament_meta ADD COLUMN upi_name TEXT DEFAULT 'Sayantan Chakraborty'"
+    ]) {
+      try {
+        await queryRun(alterSql);
+      } catch (_) {}
+    }
+    await queryRun("UPDATE tournament_meta SET match_time_mins = 14 WHERE id = 1");
   }
 
   // 2. Players table

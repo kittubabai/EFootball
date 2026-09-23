@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, ShieldAlert, CheckCircle, Smartphone, Calendar, Clock, Trophy, IndianRupee, Users, HelpCircle } from 'lucide-react';
+import { BookOpen, ShieldAlert, CheckCircle, Smartphone, Calendar, Clock, Trophy, IndianRupee, Users, Sparkles, Zap } from 'lucide-react';
 
 export default function RulesTab() {
   return (
@@ -15,29 +15,57 @@ export default function RulesTab() {
       </div>
 
       {/* Quick Specs Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '14px', marginBottom: '28px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '28px' }}>
         <div className="glass-card" style={{ padding: '16px', textAlign: 'center', borderColor: 'rgba(0, 255, 135, 0.3)' }}>
-          <Calendar size={24} color="#00ff87" style={{ marginBottom: '6px' }} />
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Match Date</div>
-          <div style={{ fontSize: '1.15rem', fontWeight: '800' }}>18th Oct 2026</div>
+          <Calendar size={22} color="#00ff87" style={{ marginBottom: '6px' }} />
+          <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>Match Date</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: '800' }}>18th Oct 2026</div>
         </div>
 
         <div className="glass-card" style={{ padding: '16px', textAlign: 'center', borderColor: 'rgba(0, 229, 255, 0.3)' }}>
-          <Clock size={24} color="#00e5ff" style={{ marginBottom: '6px' }} />
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Starting Time</div>
-          <div style={{ fontSize: '1.15rem', fontWeight: '800' }}>11:00 AM Onwards</div>
+          <Clock size={22} color="#00e5ff" style={{ marginBottom: '6px' }} />
+          <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>Match Duration</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: '800' }}>14 Mins (7m/half)</div>
+        </div>
+
+        <div className="glass-card" style={{ padding: '16px', textAlign: 'center', borderColor: 'rgba(0, 255, 135, 0.4)' }}>
+          <Sparkles size={22} color="#00ff87" style={{ marginBottom: '6px' }} />
+          <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>Player Condition</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#00ff87' }}>🟢 Excellent Only</div>
         </div>
 
         <div className="glass-card" style={{ padding: '16px', textAlign: 'center', borderColor: 'rgba(255, 190, 11, 0.3)' }}>
-          <IndianRupee size={24} color="#ffbe0b" style={{ marginBottom: '6px' }} />
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Entry Fee</div>
-          <div style={{ fontSize: '1.15rem', fontWeight: '800' }}>₹100 Per Player</div>
+          <IndianRupee size={22} color="#ffbe0b" style={{ marginBottom: '6px' }} />
+          <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>Entry Fee</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: '800' }}>₹100 Per Player</div>
         </div>
 
         <div className="glass-card" style={{ padding: '16px', textAlign: 'center', borderColor: 'rgba(157, 78, 221, 0.3)' }}>
-          <Users size={24} color="#9d4edd" style={{ marginBottom: '6px' }} />
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Room Format</div>
-          <div style={{ fontSize: '1.15rem', fontWeight: '800' }}>4 × 8-Player Rooms</div>
+          <Users size={22} color="#9d4edd" style={{ marginBottom: '6px' }} />
+          <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>Room Format</div>
+          <div style={{ fontSize: '1.1rem', fontWeight: '800' }}>4 × 8-Player Rooms</div>
+        </div>
+      </div>
+
+      {/* Special Feature: Player Condition Excellent Rule */}
+      <div className="glass-card" style={{ 
+        marginBottom: '24px', 
+        borderColor: 'rgba(0, 255, 135, 0.45)', 
+        background: 'linear-gradient(135deg, rgba(0, 255, 135, 0.08), rgba(0, 229, 255, 0.06))',
+        padding: '20px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+          <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'rgba(0, 255, 135, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Zap size={24} color="#00ff87" />
+          </div>
+          <div>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: 'var(--accent-green)', marginBottom: '6px' }}>
+              🟢 Fair Play Rule: Player Condition Must Be "Excellent" Only
+            </h3>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-main)', lineHeight: '1.6' }}>
+              To ensure 100% competitive fairness, room hosts <strong>must select "Condition: Excellent"</strong> when hosting the match room. No participant will suffer from random off-form penalties (down/red arrows). Every single player in your Dream Team squad will have the <strong>upward green arrow (🟢 peak form)</strong> so games are decided entirely by skill and tactics!
+            </p>
+          </div>
         </div>
       </div>
 
@@ -85,21 +113,21 @@ export default function RulesTab() {
         </div>
       </div>
 
-      {/* Match Room Settings */}
+      {/* Match Room Settings Checklist */}
       <div className="glass-card" style={{ marginBottom: '24px' }}>
         <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Smartphone className="glow-text-cyan" size={20} />
-          In-Game Match Settings
+          In-Game Room Settings Checklist
         </h3>
 
-        <ul style={{ fontSize: '0.9rem', color: 'var(--text-muted)', paddingLeft: '20px', lineHeight: '1.8' }}>
-          <li><strong>Match Duration:</strong> Exactly <strong>7 Minutes</strong>.</li>
+        <ul style={{ fontSize: '0.9rem', color: 'var(--text-muted)', paddingLeft: '20px', lineHeight: '1.9' }}>
+          <li><strong>Match Duration:</strong> Exactly <strong>14 Minutes Total (7-Min 1st Half + 7-Min 2nd Half)</strong>.</li>
+          <li><strong>Condition (Form):</strong> <strong>EXCELLENT ONLY (🟢 Up Green Arrow)</strong> — Mandatory for all matches.</li>
           <li><strong>Mode:</strong> Dream Team.</li>
-          <li><strong>Extra Time:</strong> ON (Mandatory).</li>
-          <li><strong>Penalty Shootout (PK):</strong> ON (Mandatory).</li>
+          <li><strong>Extra Time:</strong> ON (Mandatory in knockout ties).</li>
+          <li><strong>Penalty Shootout (PK):</strong> ON (Mandatory if still tied after extra time).</li>
           <li><strong>Injuries:</strong> OFF.</li>
-          <li><strong>Substitutions:</strong> 5 Players (in 3 stoppages).</li>
-          <li><strong>Condition:</strong> Normal / Excellent.</li>
+          <li><strong>Substitutions:</strong> 5 Players (in 3 stoppage intervals).</li>
         </ul>
       </div>
 
@@ -113,22 +141,22 @@ export default function RulesTab() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
           <div>
             <strong style={{ color: '#fff' }}>1. Entry Fee Verification:</strong>
-            <p>Every player must pay ₹100 via the UPI QR code on the registration page and submit their 12-digit UTR number. Slots are confirmed only after admin verification.</p>
+            <p>Every player pays ₹100 via UPI QR code and submits their 12-digit UTR or screenshot. Only verified players are admitted into the tournament match rooms.</p>
           </div>
 
           <div>
             <strong style={{ color: '#fff' }}>2. Punctuality on 18th October:</strong>
-            <p>Matches begin promptly at 11:00 AM. Players must be inside their respective 8-player custom room within 10 minutes of room opening. Failure to attend results in a walkover.</p>
+            <p>Matches begin promptly at 11:00 AM. Players must be inside their respective 8-player custom room within 10 minutes of room code announcement. Failure to attend results in a walkover.</p>
           </div>
 
           <div>
             <strong style={{ color: '#fff' }}>3. Network Disconnection:</strong>
-            <p>If a disconnect occurs before the 15th in-game minute at 0-0, the match will be restarted. Otherwise, the disconnecting player forfeits the game.</p>
+            <p>If a disconnect occurs before the 15th in-game minute at 0-0, the match will be restarted. Otherwise, the disconnecting player forfeits the match.</p>
           </div>
 
           <div>
             <strong style={{ color: '#fff' }}>4. Screenshot Reporting:</strong>
-            <p>Both players must capture a screenshot of the full-time score screen and send it to the tournament admin team for verification.</p>
+            <p>Both players must capture a screenshot of the full-time score screen and share it in the group or with the admin team for official bracket progression.</p>
           </div>
         </div>
       </div>

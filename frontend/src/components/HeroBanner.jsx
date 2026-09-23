@@ -47,8 +47,8 @@ export default function HeroBanner({ tournamentStatus, playersCount }) {
           </span>
         </div>
 
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.86rem', maxWidth: '480px', margin: '0 auto' }}>
-          4 Custom Rooms (8+8+8+8) • 7-Min Matches • Final 4 Championship (1st, 2nd, 3rd Place)
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.86rem', maxWidth: '520px', margin: '0 auto' }}>
+          4 Custom Rooms (8+8+8+8) • 14-Min Matches (7m/half) • Final 4 Championship (1st, 2nd, 3rd Place)
         </p>
 
         <div className="hero-stats-row">
@@ -59,7 +59,11 @@ export default function HeroBanner({ tournamentStatus, playersCount }) {
 
           <div className="hero-stat-pill">
             <Clock size={14} color="#00ff87" />
-            <span>Match Time: <strong>7 Mins</strong></span>
+            <span>Match Time: <strong>14 Mins (7m/half)</strong></span>
+          </div>
+
+          <div className="hero-stat-pill" style={{ borderColor: 'rgba(0, 255, 135, 0.35)' }}>
+            <span style={{ color: '#00ff87', fontWeight: '700' }}>🟢 Form: <strong>Excellent Only</strong></span>
           </div>
 
           <div className="hero-stat-pill">

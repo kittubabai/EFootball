@@ -163,7 +163,7 @@ export default function App() {
           onClick={() => { setActiveTab('rules'); localStorage.setItem('tab_chosen', 'true'); }}
         >
           <BookOpen size={17} />
-          <span>7-Min Match Rules</span>
+          <span>14-Min Match Rules</span>
         </button>
       </nav>
 

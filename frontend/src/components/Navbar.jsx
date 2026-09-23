@@ -47,7 +47,7 @@ export default function Navbar({ tournamentStatus, isAdmin, onOpenAdmin }) {
 
         <div className="badge" style={{ background: 'rgba(255,255,255,0.06)', color: '#a0b3cf' }}>
           <Clock size={14} />
-          <span>{tournamentStatus?.match_time_mins || 7} Mins Match</span>
+          <span>{tournamentStatus?.match_time_mins || 14} Mins Match (7m/half)</span>
         </div>
 
         <button 

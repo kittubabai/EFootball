@@ -92,7 +92,7 @@ app.get('/api/status', async (_req: Request, res: Response) => {
       registered_count: totalCount?.cnt || 0,
       verified_count: verifiedCount?.cnt || 0,
       max_players: meta?.max_players || 32,
-      match_time_mins: meta?.match_time_mins || 7,
+      match_time_mins: meta?.match_time_mins || 14,
       event_date: meta?.event_date || '18th October 2026',
       event_time: meta?.event_time || '11:00 AM onwards',
       entry_fee: meta?.entry_fee || 100,
