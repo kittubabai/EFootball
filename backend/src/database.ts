@@ -1,3 +1,7 @@
+import { setDefaultResultOrder } from 'dns';
+// Force IPv4 — Render free tier does not support IPv6 outbound connections
+setDefaultResultOrder('ipv4first');
+
 import pg from 'pg';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -8,6 +12,7 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
+
 
 pool.on('error', (err) => {
   console.error('Unexpected PostgreSQL pool error:', err.message);
