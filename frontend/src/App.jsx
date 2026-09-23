@@ -1,0 +1,217 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { UserPlus, GitFork, Calendar, BookOpen, Trophy } from 'lucide-react';
+
+import Navbar from './components/Navbar';
+import HeroBanner from './components/HeroBanner';
+import RegistrationTab from './components/RegistrationTab';
+import BracketTab from './components/BracketTab';
+import FixturesTab from './components/FixturesTab';
+import RulesTab from './components/RulesTab';
+import AdminModal from './components/AdminModal';
+import ScoreModal from './components/ScoreModal';
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState('register');
+  const [tournamentStatus, setTournamentStatus] = useState(null);
+  const [players, setPlayers] = useState([]);
+  const [bracketData, setBracketData] = useState({ tournament_status: 'registration', rounds: [] });
+  const [matches, setMatches] = useState([]);
+  
+  // Admin auth state
+  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('ef_admin_logged') === 'true');
+  const [adminPin, setAdminPin] = useState(() => localStorage.getItem('ef_admin_pin') || '');
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [activeScoreMatch, setActiveScoreMatch] = useState(null);
+
+  // Fetch all tournament data
+  const fetchData = useCallback(async () => {
+    try {
+      // 1. Fetch status
+      const statusRes = await fetch('/api/status');
+      if (statusRes.ok) {
+        const s = await statusRes.json();
+        setTournamentStatus(s);
+        // If tournament is live or completed and tab is still register, automatically suggest bracket
+        if (s.status !== 'registration' && activeTab === 'register' && !localStorage.getItem('tab_chosen')) {
+          setActiveTab('bracket');
+        }
+      }
+
+      // 2. Fetch players
+      const playersRes = await fetch('/api/players');
+      if (playersRes.ok) {
+        const p = await playersRes.json();
+        setPlayers(p);
+      }
+
+      // 3. Fetch bracket
+      const bracketRes = await fetch('/api/bracket');
+      if (bracketRes.ok) {
+        const b = await bracketRes.json();
+        setBracketData(b);
+      }
+
+      // 4. Fetch matches
+      const matchesRes = await fetch('/api/matches');
+      if (matchesRes.ok) {
+        const m = await matchesRes.json();
+        setMatches(m);
+      }
+    } catch (err) {
+      console.error('Error fetching tournament data:', err);
+    }
+  }, [activeTab]);
+
+  // Initial fetch and auto-polling every 10s for real-time live match updates
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  const handleAdminLoginSuccess = (pin) => {
+    setIsAdmin(true);
+    setAdminPin(pin);
+    localStorage.setItem('ef_admin_logged', 'true');
+    localStorage.setItem('ef_admin_pin', pin);
+  };
+
+  const handleAdminLogout = () => {
+    setIsAdmin(false);
+    setAdminPin('');
+    localStorage.removeItem('ef_admin_logged');
+    localStorage.removeItem('ef_admin_pin');
+  };
+
+  // Find if tournament is completed and who is the champion
+  const finalRound = bracketData.rounds.length > 0 ? bracketData.rounds[bracketData.rounds.length - 1] : null;
+  const finalMatch = finalRound?.matches?.length > 0 ? finalRound.matches[0] : null;
+  const champion = finalMatch?.winner_id 
+    ? (finalMatch.winner_id === finalMatch.player1?.id ? finalMatch.player1 : finalMatch.player2)
+    : null;
+
+  return (
+    <div className="app-container">
+      {/* Top Navigation */}
+      <Navbar 
+        tournamentStatus={tournamentStatus} 
+        isAdmin={isAdmin}
+        onOpenAdmin={() => setShowAdminModal(true)}
+      />
+
+      {/* Messi & Ronaldo eFootball Hero Showcase */}
+      <HeroBanner 
+        tournamentStatus={tournamentStatus}
+        playersCount={players.length}
+      />
+
+      {/* Champion Banner if finished */}
+      {champion && (
+        <div className="glass-card" style={{ 
+          marginBottom: '24px', 
+          background: 'linear-gradient(135deg, rgba(255, 190, 11, 0.15), rgba(0, 255, 135, 0.15))',
+          borderColor: 'rgba(255, 190, 11, 0.4)',
+          textAlign: 'center',
+          padding: '24px'
+        }}>
+          <Trophy size={42} color="#ffbe0b" style={{ display: 'inline-block', marginBottom: '8px' }} />
+          <h2 style={{ fontSize: '1.6rem', color: '#ffbe0b', fontWeight: '900' }}>
+            🎉 TOURNAMENT CHAMPION: {champion.name} 🎉
+          </h2>
+          <div style={{ color: 'var(--text-main)', marginTop: '4px', fontSize: '1.05rem' }}>
+            Team: <strong>{champion.team_name || 'Dream Team'}</strong> • eFootball ID: <code>{champion.efootball_id}</code>
+          </div>
+        </div>
+      )}
+
+      {/* Navigation Tabs */}
+      <nav className="tabs-nav">
+        <button 
+          className={`tab-btn ${activeTab === 'register' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('register'); localStorage.setItem('tab_chosen', 'true'); }}
+        >
+          <UserPlus size={17} />
+          <span>Register ({players.length}/32)</span>
+        </button>
+
+        <button 
+          className={`tab-btn ${activeTab === 'bracket' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('bracket'); localStorage.setItem('tab_chosen', 'true'); }}
+        >
+          <GitFork size={17} />
+          <span>Knockout Bracket</span>
+        </button>
+
+        <button 
+          className={`tab-btn ${activeTab === 'fixtures' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('fixtures'); localStorage.setItem('tab_chosen', 'true'); }}
+        >
+          <Calendar size={17} />
+          <span>Fixtures & Results</span>
+        </button>
+
+        <button 
+          className={`tab-btn ${activeTab === 'rules' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('rules'); localStorage.setItem('tab_chosen', 'true'); }}
+        >
+          <BookOpen size={17} />
+          <span>7-Min Match Rules</span>
+        </button>
+      </nav>
+
+      {/* Main Content Area */}
+      <main style={{ flexGrow: 1 }}>
+        {activeTab === 'register' && (
+          <RegistrationTab 
+            tournamentStatus={tournamentStatus}
+            players={players}
+            onPlayerRegistered={fetchData}
+          />
+        )}
+
+        {activeTab === 'bracket' && (
+          <BracketTab 
+            bracketData={bracketData}
+            isAdmin={isAdmin}
+            onOpenScoreModal={(match) => setActiveScoreMatch(match)}
+          />
+        )}
+
+        {activeTab === 'fixtures' && (
+          <FixturesTab 
+            matches={matches}
+            isAdmin={isAdmin}
+            onOpenScoreModal={(match) => setActiveScoreMatch(match)}
+          />
+        )}
+
+        {activeTab === 'rules' && (
+          <RulesTab />
+        )}
+      </main>
+
+      {/* Admin Management Modal */}
+      <AdminModal 
+        isOpen={showAdminModal}
+        onClose={() => setShowAdminModal(false)}
+        isAdmin={isAdmin}
+        adminPin={adminPin}
+        onLoginSuccess={handleAdminLoginSuccess}
+        onLogout={handleAdminLogout}
+        tournamentStatus={tournamentStatus}
+        players={players}
+        onRefresh={fetchData}
+      />
+
+      {/* Match Score Record Modal */}
+      {activeScoreMatch && (
+        <ScoreModal 
+          match={activeScoreMatch}
+          adminPin={adminPin}
+          onClose={() => setActiveScoreMatch(null)}
+          onScoreUpdated={fetchData}
+        />
+      )}
+    </div>
+  );
+}

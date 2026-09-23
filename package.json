@@ -1,0 +1,11 @@
+{
+  "name": "efootball-tournament-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Full-stack eFootball tournament web application with TypeScript Express backend and React frontend",
+  "scripts": {
+    "install:all": "npm install --prefix frontend && npm install --prefix backend",
+    "build": "npm run build --prefix frontend && npm run build --prefix backend",
+    "start": "npm start --prefix backend"
+  }
+}
