@@ -25,7 +25,7 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 // Initialize database tables on start
 await initDb();
@@ -107,10 +107,10 @@ app.get('/api/status', async (_req: Request, res: Response) => {
 
 app.post('/api/players/register', async (req: Request, res: Response) => {
   try {
-    const { name, efootball_id, whatsapp, team_name, utr_number } = req.body;
+    const { name, efootball_id, whatsapp, team_name, utr_number, payment_screenshot } = req.body;
 
-    if (!name || !efootball_id || !whatsapp || !utr_number) {
-      return res.status(400).json({ detail: 'Name, eFootball ID, WhatsApp, and Payment UTR / Transaction ID are required.' });
+    if (!name || !efootball_id || !whatsapp) {
+      return res.status(400).json({ detail: 'Name, eFootball ID, and WhatsApp number are required.' });
     }
 
     const meta = await queryGet<TournamentMeta>('SELECT status, max_players FROM tournament_meta WHERE id = 1');
@@ -128,18 +128,49 @@ app.post('/api/players/register', async (req: Request, res: Response) => {
       return res.status(400).json({ detail: 'This eFootball User ID is already registered.' });
     }
 
-    const existingUtr = await queryGet<Player>('SELECT id FROM players WHERE utr_number = ?', [utr_number.trim()]);
-    if (existingUtr) {
-      return res.status(400).json({ detail: 'This UTR / Transaction ID has already been submitted.' });
+    if (utr_number && utr_number.trim()) {
+      const existingUtr = await queryGet<Player>('SELECT id FROM players WHERE utr_number = ?', [utr_number.trim()]);
+      if (existingUtr) {
+        return res.status(400).json({ detail: 'This UTR / Transaction ID has already been submitted.' });
+      }
     }
 
     const runRes = await queryRun(
-      'INSERT INTO players (name, efootball_id, whatsapp, team_name, utr_number, payment_status) VALUES (?, ?, ?, ?, ?, ?)',
-      [name.trim(), efootball_id.trim(), whatsapp.trim(), (team_name || '').trim(), utr_number.trim(), 'pending']
+      'INSERT INTO players (name, efootball_id, whatsapp, team_name, utr_number, payment_screenshot, payment_status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [name.trim(), efootball_id.trim(), whatsapp.trim(), (team_name || '').trim(), (utr_number || '').trim(), payment_screenshot || '', 'pending']
     );
 
     const newPlayer = await queryGet<Player>('SELECT * FROM players WHERE id = ?', [runRes.lastID]);
     res.status(201).json(newPlayer);
+  } catch (err: any) {
+    res.status(500).json({ detail: err.message });
+  }
+});
+
+// Endpoint for players to submit or update their payment UTR and/or screenshot
+app.post(['/api/players/:id/submit-payment', '/api/players/:id/submit-utr'], async (req: Request, res: Response) => {
+  try {
+    const rawId = req.params.id;
+    const playerId = parseInt(Array.isArray(rawId) ? rawId[0] : rawId, 10);
+    const { utr_number, payment_screenshot } = req.body;
+
+    if (!utr_number && !payment_screenshot) {
+      return res.status(400).json({ detail: 'Please provide either a 12-digit UPI UTR number or an uploaded payment screenshot.' });
+    }
+
+    if (utr_number && utr_number.trim()) {
+      const existingUtr = await queryGet<Player>('SELECT id FROM players WHERE utr_number = ? AND id != ?', [utr_number.trim(), playerId]);
+      if (existingUtr) {
+        return res.status(400).json({ detail: 'This UTR / Transaction ID has already been submitted by another player.' });
+      }
+    }
+
+    await queryRun(
+      'UPDATE players SET utr_number = COALESCE(NULLIF(?, ""), utr_number), payment_screenshot = COALESCE(NULLIF(?, ""), payment_screenshot) WHERE id = ?',
+      [(utr_number || '').trim(), payment_screenshot || '', playerId]
+    );
+
+    res.json({ success: true, message: 'Payment details submitted! The admin will verify and admit you into the tournament rooms.' });
   } catch (err: any) {
     res.status(500).json({ detail: err.message });
   }
@@ -246,7 +277,7 @@ app.post('/api/admin/login', async (req: Request, res: Response) => {
   }
 });
 
-app.post('/api/admin/players/:id/verify-payment', verifyAdminPin, async (req: Request, res: Response) => {
+app.all(['/api/admin/players/:id/verify-payment', '/api/admin/players/:id/payment'], verifyAdminPin, async (req: Request, res: Response) => {
   try {
     const rawId = req.params.id;
     const playerId = parseInt(Array.isArray(rawId) ? rawId[0] : rawId, 10);

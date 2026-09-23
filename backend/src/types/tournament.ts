@@ -7,6 +7,7 @@ export interface Player {
   seed: number | null;
   payment_status: 'pending' | 'verified' | 'rejected';
   utr_number: string;
+  payment_screenshot?: string;
   group_assigned: 'A' | 'B' | 'C' | 'D' | null;
   registered_at: string;
   status: string;

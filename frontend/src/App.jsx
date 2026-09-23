@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { UserPlus, GitFork, Calendar, BookOpen, Trophy } from 'lucide-react';
+import { UserPlus, GitFork, Calendar, BookOpen, Trophy, QrCode } from 'lucide-react';
 
 import Navbar from './components/Navbar';
 import HeroBanner from './components/HeroBanner';
 import RegistrationTab from './components/RegistrationTab';
+import PaymentTab from './components/PaymentTab';
 import BracketTab from './components/BracketTab';
 import FixturesTab from './components/FixturesTab';
 import RulesTab from './components/RulesTab';
@@ -134,6 +135,14 @@ export default function App() {
         </button>
 
         <button 
+          className={`tab-btn ${activeTab === 'payment' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('payment'); localStorage.setItem('tab_chosen', 'true'); }}
+        >
+          <QrCode size={17} />
+          <span>Pay Entry Fee (₹100)</span>
+        </button>
+
+        <button 
           className={`tab-btn ${activeTab === 'bracket' ? 'active' : ''}`}
           onClick={() => { setActiveTab('bracket'); localStorage.setItem('tab_chosen', 'true'); }}
         >
@@ -165,6 +174,16 @@ export default function App() {
             tournamentStatus={tournamentStatus}
             players={players}
             onPlayerRegistered={fetchData}
+            onSwitchToPayment={() => { setActiveTab('payment'); localStorage.setItem('tab_chosen', 'true'); }}
+          />
+        )}
+
+        {activeTab === 'payment' && (
+          <PaymentTab 
+            tournamentStatus={tournamentStatus}
+            players={players}
+            onPaymentSubmitted={fetchData}
+            onSwitchToRegister={() => { setActiveTab('register'); localStorage.setItem('tab_chosen', 'true'); }}
           />
         )}
 

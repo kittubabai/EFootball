@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Lock, ShieldCheck, Shuffle, RotateCcw, UserPlus, Trash2, AlertCircle, CheckCircle2, Check, Clock } from 'lucide-react';
+import { X, Lock, ShieldCheck, Shuffle, RotateCcw, UserPlus, Trash2, AlertCircle, CheckCircle2, Check, Clock, Eye } from 'lucide-react';
 
 export default function AdminModal({ 
   isOpen, 
@@ -15,6 +15,7 @@ export default function AdminModal({
   const [pinInput, setPinInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState({ text: '', type: '' });
+  const [viewScreenshot, setViewScreenshot] = useState(null);
 
   if (!isOpen) return null;
 
@@ -254,6 +255,17 @@ export default function AdminModal({
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {p.payment_screenshot && (
+                        <button 
+                          onClick={() => setViewScreenshot(p.payment_screenshot)}
+                          className="btn btn-outline"
+                          style={{ padding: '4px 8px', fontSize: '0.74rem', borderColor: 'rgba(0,229,255,0.4)', color: 'var(--accent-cyan)' }}
+                          title="View Payment Screenshot"
+                        >
+                          <Eye size={12} /> Receipt
+                        </button>
+                      )}
+
                       {p.payment_status === 'verified' ? (
                         <span style={{ fontSize: '0.74rem', background: 'rgba(0,255,135,0.12)', color: 'var(--accent-green)', padding: '4px 8px', borderRadius: '4px', fontWeight: '700' }}>
                           ✓ Verified
@@ -261,8 +273,8 @@ export default function AdminModal({
                       ) : (
                         <button 
                           onClick={() => handleVerifyPayment(p.id, 'verified')}
-                          className="btn btn-outline"
-                          style={{ padding: '4px 10px', fontSize: '0.74rem', borderColor: 'rgba(0,255,135,0.4)', color: 'var(--accent-green)' }}
+                          className="btn btn-primary"
+                          style={{ padding: '4px 10px', fontSize: '0.74rem' }}
                           title="Verify ₹100 Payment"
                         >
                           <Check size={12} /> Verify ₹100
@@ -307,6 +319,50 @@ export default function AdminModal({
           </div>
         )}
       </div>
+
+      {/* Screenshot Preview Modal */}
+      {viewScreenshot && (
+        <div 
+          onClick={() => setViewScreenshot(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.88)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            padding: '20px'
+          }}
+        >
+          <div 
+            onClick={e => e.stopPropagation()} 
+            style={{ maxWidth: '90%', maxHeight: '85%', position: 'relative' }}
+          >
+            <button 
+              onClick={() => setViewScreenshot(null)}
+              style={{
+                position: 'absolute',
+                top: '-36px',
+                right: '0',
+                background: 'transparent',
+                border: 'none',
+                color: '#fff',
+                cursor: 'pointer'
+              }}
+              title="Close Preview"
+            >
+              <X size={26} />
+            </button>
+            <img 
+              src={viewScreenshot} 
+              alt="Payment receipt proof" 
+              style={{ maxWidth: '100%', maxHeight: '80vh', borderRadius: '8px', border: '2px solid var(--accent-green)', boxShadow: '0 8px 32px rgba(0,0,0,0.8)' }} 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

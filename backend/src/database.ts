@@ -100,11 +100,16 @@ export async function initDb(): Promise<void> {
     )
   `);
 
-  try {
-    await queryRun("ALTER TABLE players ADD COLUMN payment_status TEXT DEFAULT 'pending'");
-    await queryRun("ALTER TABLE players ADD COLUMN utr_number TEXT DEFAULT ''");
-    await queryRun("ALTER TABLE players ADD COLUMN group_assigned TEXT DEFAULT NULL");
-  } catch (_) {}
+  for (const alterSql of [
+    "ALTER TABLE players ADD COLUMN payment_status TEXT DEFAULT 'pending'",
+    "ALTER TABLE players ADD COLUMN utr_number TEXT DEFAULT ''",
+    "ALTER TABLE players ADD COLUMN group_assigned TEXT DEFAULT NULL",
+    "ALTER TABLE players ADD COLUMN payment_screenshot TEXT DEFAULT ''"
+  ]) {
+    try {
+      await queryRun(alterSql);
+    } catch (_) {}
+  }
 
   // 3. Matches table with 4-group & finals support
   await queryRun(`
@@ -135,10 +140,14 @@ export async function initDb(): Promise<void> {
     )
   `);
 
-  try {
-    await queryRun("ALTER TABLE matches ADD COLUMN group_key TEXT DEFAULT 'A'");
-    await queryRun("ALTER TABLE matches ADD COLUMN loser_id INTEGER NULL");
-    await queryRun("ALTER TABLE matches ADD COLUMN loser_next_match_id INTEGER NULL");
-    await queryRun("ALTER TABLE matches ADD COLUMN loser_next_slot INTEGER NULL");
-  } catch (_) {}
+  for (const alterSql of [
+    "ALTER TABLE matches ADD COLUMN group_key TEXT DEFAULT 'A'",
+    "ALTER TABLE matches ADD COLUMN loser_id INTEGER NULL",
+    "ALTER TABLE matches ADD COLUMN loser_next_match_id INTEGER NULL",
+    "ALTER TABLE matches ADD COLUMN loser_next_slot INTEGER NULL"
+  ]) {
+    try {
+      await queryRun(alterSql);
+    } catch (_) {}
+  }
 }

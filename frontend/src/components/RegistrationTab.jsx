@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { UserCheck, Shield, Sparkles, AlertCircle, CheckCircle2, Search, Info, QrCode, Copy, Check, IndianRupee } from 'lucide-react';
+import { UserCheck, Shield, Sparkles, AlertCircle, CheckCircle2, Search, Info, ArrowRight, IndianRupee } from 'lucide-react';
 
-export default function RegistrationTab({ tournamentStatus, players, onPlayerRegistered }) {
+export default function RegistrationTab({ tournamentStatus, players, onPlayerRegistered, onSwitchToPayment }) {
   const [formData, setFormData] = useState({
     name: '',
     efootball_id: '',
@@ -13,21 +13,12 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [copiedUpi, setCopiedUpi] = useState(false);
 
   const registeredCount = tournamentStatus?.registered_count || players.length;
+  const verifiedCount = tournamentStatus?.verified_count || 0;
   const maxPlayers = tournamentStatus?.max_players || 32;
   const isRegistrationClosed = tournamentStatus?.status !== 'registration' || registeredCount >= maxPlayers;
   const percentage = Math.min(100, Math.round((registeredCount / maxPlayers) * 100));
-
-  const upiId = tournamentStatus?.upi_id || 'sayantanbabu2000-1@oksbi';
-  const upiName = tournamentStatus?.upi_name || 'Sayantan Chakraborty';
-
-  const handleCopyUpi = () => {
-    navigator.clipboard.writeText(upiId);
-    setCopiedUpi(true);
-    setTimeout(() => setCopiedUpi(false), 2000);
-  };
 
   const handleChange = (e) => {
     setFormData(prev => ({
@@ -42,8 +33,8 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
     setErrorMsg('');
     setSuccessMsg('');
 
-    if (!formData.name.trim() || !formData.efootball_id.trim() || !formData.whatsapp.trim() || !formData.utr_number.trim()) {
-      setErrorMsg('Please fill in your Player Name, eFootball ID, WhatsApp, and Payment UTR / Transaction ID.');
+    if (!formData.name.trim() || !formData.efootball_id.trim() || !formData.whatsapp.trim()) {
+      setErrorMsg('Please fill in your Player Name, eFootball ID, and WhatsApp contact number.');
       return;
     }
 
@@ -59,7 +50,7 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
         throw new Error(data.detail || 'Failed to register player.');
       }
 
-      setSuccessMsg(`Registration received for ${data.name}! The admin team will verify your ₹100 payment (UTR: ${data.utr_number}) and assign your 8-player room.`);
+      setSuccessMsg(`Welcome, ${data.name}! You are registered. Please complete your ₹100 payment in the "Pay Entry Fee" tab to be admitted to the match rooms.`);
       setFormData({ name: '', efootball_id: '', whatsapp: '', team_name: '', utr_number: '' });
       if (onPlayerRegistered) onPlayerRegistered();
     } catch (err) {
@@ -72,67 +63,44 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
   const filteredPlayers = players.filter(p => 
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.efootball_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (p.team_name && p.team_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (p.utr_number && p.utr_number.toLowerCase().includes(searchQuery.toLowerCase()))
+    (p.team_name && p.team_name.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
     <div>
-      {/* Payment Instruction Banner */}
+      {/* Information Alert */}
       <div className="glass-card" style={{ 
         marginBottom: '24px', 
-        background: 'linear-gradient(135deg, rgba(16, 26, 46, 0.85), rgba(10, 16, 30, 0.95))',
-        border: '1px solid rgba(0, 229, 255, 0.35)',
-        display: 'grid',
-        gridTemplateColumns: 'auto 1fr',
-        gap: '24px',
-        alignItems: 'center'
+        padding: '16px 20px',
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '12px',
+        borderColor: 'rgba(0, 229, 255, 0.3)'
       }}>
-        {/* QR Code Container */}
-        <div style={{ textAlign: 'center', background: '#fff', padding: '10px', borderRadius: '12px', width: '160px', margin: '0 auto' }}>
-          <img 
-            src="/payment_qr.png" 
-            alt="Scan to pay entry fee via UPI" 
-            style={{ width: '140px', height: 'auto', display: 'block', borderRadius: '6px' }}
-          />
-          <div style={{ color: '#040812', fontSize: '0.72rem', fontWeight: '800', marginTop: '6px' }}>
-            SCAN & PAY ₹100
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(0, 229, 255, 0.12)', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <IndianRupee size={20} />
           </div>
-        </div>
-
-        {/* Payment Details & Steps */}
-        <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(0, 255, 135, 0.12)', color: 'var(--accent-green)', padding: '4px 12px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: '800', marginBottom: '8px' }}>
-            <IndianRupee size={14} /> ENTRY FEE: ₹100 PER PLAYER
-          </div>
-
-          <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '4px' }}>
-            How to Pay & Confirm Your Slot
-          </h3>
-
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '12px' }}>
-            Pay via GPay, PhonePe, Paytm, or any UPI app. After payment, copy the <strong>12-digit UTR / Reference ID</strong> from your transaction receipt and paste it below.
-          </p>
-
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <div style={{ background: 'rgba(0, 0, 0, 0.4)', padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '0.85rem' }}>
-              <span style={{ color: 'var(--text-dim)' }}>Payee Name: </span>
-              <strong>{upiName}</strong>
+          <div>
+            <div style={{ fontWeight: '800', fontSize: '0.95rem' }}>
+              Registration is open to everyone!
             </div>
-
-            <div style={{ background: 'rgba(0, 0, 0, 0.4)', padding: '8px 14px', borderRadius: '8px', border: '1px solid rgba(0, 229, 255, 0.3)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ color: 'var(--text-dim)' }}>UPI ID: </span>
-              <strong style={{ color: 'var(--accent-cyan)', fontFamily: 'monospace' }}>{upiId}</strong>
-              <button 
-                onClick={handleCopyUpi} 
-                style={{ background: 'transparent', border: 'none', color: copiedUpi ? '#00ff87' : 'var(--text-muted)', cursor: 'pointer', padding: '2px' }}
-                title="Copy UPI ID"
-              >
-                {copiedUpi ? <Check size={14} /> : <Copy size={14} />}
-              </button>
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.84rem' }}>
+              Only players who complete the ₹100 entry fee will be admitted to the 4 tournament rooms (Groups A, B, C, D).
             </div>
           </div>
         </div>
+
+        <button 
+          onClick={onSwitchToPayment}
+          className="btn btn-outline"
+          style={{ borderColor: 'var(--accent-green)', color: 'var(--accent-green)', fontSize: '0.82rem', padding: '8px 14px' }}
+        >
+          <span>Pay Entry Fee (₹100)</span>
+          <ArrowRight size={14} />
+        </button>
       </div>
 
       {/* Main Registration & Contenders Grid */}
@@ -143,10 +111,10 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <h2 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <UserCheck className="glow-text-green" size={22} />
-                Register for Pantihal Cup
+                Player Registration
               </h2>
               <span style={{ fontSize: '0.88rem', fontWeight: '700', color: 'var(--accent-green)' }}>
-                {registeredCount} / {maxPlayers} Slots
+                {registeredCount} / {maxPlayers} Slots ({verifiedCount} Confirmed)
               </span>
             </div>
 
@@ -245,32 +213,31 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
                   />
                 </div>
 
-                <div className="form-group" style={{ background: 'rgba(0, 229, 255, 0.05)', padding: '14px', borderRadius: '8px', border: '1px solid rgba(0, 229, 255, 0.25)' }}>
-                  <label className="form-label" style={{ color: 'var(--accent-cyan)', fontWeight: '800' }}>
-                    Payment UTR / Transaction ID (12 Digits) *
+                <div className="form-group">
+                  <label className="form-label">
+                    Payment UTR / Transaction ID (Optional if paying later)
                   </label>
                   <input 
                     type="text"
                     name="utr_number"
                     value={formData.utr_number}
                     onChange={handleChange}
-                    placeholder="e.g. 427189028193"
+                    placeholder="e.g. 427189028193 (or enter in Pay tab later)"
                     className="form-input"
-                    required
                   />
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                    Sent after scanning QR and paying ₹100. Admin verifies this before approving your slot.
+                  <div style={{ fontSize: '0.74rem', color: 'var(--text-dim)', marginTop: '4px' }}>
+                    If you haven't paid yet, you can leave this blank and submit payment via the Pay Entry Fee tab.
                   </div>
                 </div>
 
                 <button 
                   type="submit" 
                   className="btn btn-primary"
-                  style={{ width: '100%', marginTop: '12px' }}
+                  style={{ width: '100%', marginTop: '8px' }}
                   disabled={loading}
                 >
                   <Sparkles size={18} />
-                  <span>{loading ? 'Submitting Registration...' : 'Submit ₹100 Entry & Register'}</span>
+                  <span>{loading ? 'Submitting Registration...' : 'Complete Registration'}</span>
                 </button>
               </form>
             )}
@@ -291,7 +258,7 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
               <Search size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
               <input 
                 type="text"
-                placeholder="Search by player, eFootball ID, or UTR..."
+                placeholder="Search by player or eFootball ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="form-input"
@@ -302,7 +269,7 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
             <div className="registered-players-list">
               {filteredPlayers.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '36px 0', color: 'var(--text-dim)' }}>
-                  {players.length === 0 ? 'No players registered yet. Scan QR and be the first to enter!' : 'No matching players found.'}
+                  {players.length === 0 ? 'No players registered yet. Be the first to join!' : 'No matching players found.'}
                 </div>
               ) : (
                 filteredPlayers.map((player, index) => (
@@ -325,7 +292,7 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
                       <div style={{ marginTop: '4px' }}>
                         {player.payment_status === 'verified' ? (
                           <span style={{ fontSize: '0.72rem', color: 'var(--accent-green)', fontWeight: '700' }}>
-                            ✓ Paid & Verified
+                            ✓ Paid & Admitted
                           </span>
                         ) : (
                           <span style={{ fontSize: '0.72rem', color: 'var(--accent-gold)', fontWeight: '600' }}>

@@ -2,10 +2,10 @@ import { queryAll, queryGet, queryRun } from './database.js';
 import { Player, Match, ScoreUpdateInput } from './types/tournament.js';
 
 export async function generateGroupTournament(shuffleSeeds: boolean = true) {
-  // 1. Fetch active players (prioritizing verified players)
-  const players = await queryAll<Player>("SELECT * FROM players WHERE status = 'active'");
+  // 1. Fetch ONLY verified paid players
+  const players = await queryAll<Player>("SELECT * FROM players WHERE status = 'active' AND payment_status = 'verified'");
   if (players.length < 4) {
-    throw new Error('At least 4 players are required to generate tournament groups.');
+    throw new Error(`At least 4 verified paid players are required to seed the tournament groups. Currently, only ${players.length} players have verified payments.`);
   }
 
   // Clear existing matches
