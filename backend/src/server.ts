@@ -1,3 +1,7 @@
+import { setDefaultResultOrder } from 'dns';
+// Force IPv4 DNS — Render free tier blocks IPv6 outbound (ENETUNREACH fix)
+setDefaultResultOrder('ipv4first');
+
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import path from 'path';
