@@ -40,9 +40,9 @@ export default function Navbar({ tournamentStatus, isAdmin, onOpenAdmin }) {
       <div className="header-actions">
         {getStatusBadge()}
 
-        <div className="badge badge-pending" title="Registered Players">
+        <div className="badge badge-pending" title="Confirmed Paid Players vs Total Registered">
           <Users size={14} />
-          <span>{tournamentStatus?.registered_count || 0} / {tournamentStatus?.max_players || 32}</span>
+          <span>{tournamentStatus?.verified_count || 0}/32 Paid ({tournamentStatus?.registered_count || 0} Registered)</span>
         </div>
 
         <div className="badge" style={{ background: 'rgba(255,255,255,0.06)', color: '#a0b3cf' }}>

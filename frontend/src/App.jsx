@@ -131,7 +131,7 @@ export default function App() {
           onClick={() => { setActiveTab('register'); localStorage.setItem('tab_chosen', 'true'); }}
         >
           <UserPlus size={17} />
-          <span>Register ({players.length}/32)</span>
+          <span>Register ({players.length} Registered)</span>
         </button>
 
         <button 
@@ -139,7 +139,7 @@ export default function App() {
           onClick={() => { setActiveTab('payment'); localStorage.setItem('tab_chosen', 'true'); }}
         >
           <QrCode size={17} />
-          <span>Pay Entry Fee (₹100)</span>
+          <span>Pay Entry Fee (₹100) • {tournamentStatus?.verified_count || 0}/32 Paid</span>
         </button>
 
         <button 

@@ -118,9 +118,10 @@ app.post('/api/players/register', async (req: Request, res: Response) => {
       return res.status(400).json({ detail: 'Registration is currently closed for this tournament.' });
     }
 
-    const countRow = await queryGet<{ cnt: number }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active'");
-    if ((countRow?.cnt || 0) >= (meta?.max_players || 32)) {
-      return res.status(400).json({ detail: 'Tournament has reached maximum capacity of 32 players.' });
+    // Unlimited registrations allowed until 32 VERIFIED PAYMENTS are confirmed
+    const verifiedRow = await queryGet<{ cnt: number }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified'");
+    if ((verifiedRow?.cnt || 0) >= (meta?.max_players || 32)) {
+      return res.status(400).json({ detail: 'Registration is now closed because all 32 tournament slots have been filled with verified payments.' });
     }
 
     const existing = await queryGet<Player>('SELECT id FROM players WHERE efootball_id = ?', [efootball_id.trim()]);
@@ -153,6 +154,17 @@ app.post(['/api/players/:id/submit-payment', '/api/players/:id/submit-utr'], asy
     const rawId = req.params.id;
     const playerId = parseInt(Array.isArray(rawId) ? rawId[0] : rawId, 10);
     const { utr_number, payment_screenshot } = req.body;
+
+    const meta = await queryGet<TournamentMeta>('SELECT status, max_players FROM tournament_meta WHERE id = 1');
+    if (meta?.status !== 'registration') {
+      return res.status(400).json({ detail: 'Payment submissions are closed as tournament groups have already begun.' });
+    }
+
+    // Check if 32 payments are already verified
+    const verifiedRow = await queryGet<{ cnt: number }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified'");
+    if ((verifiedRow?.cnt || 0) >= (meta?.max_players || 32)) {
+      return res.status(400).json({ detail: 'All 32 tournament slots are filled with confirmed payments! No more payments are being accepted.' });
+    }
 
     if (!utr_number && !payment_screenshot) {
       return res.status(400).json({ detail: 'Please provide either a 12-digit UPI UTR number or an uploaded payment screenshot.' });
@@ -282,8 +294,31 @@ app.all(['/api/admin/players/:id/verify-payment', '/api/admin/players/:id/paymen
     const rawId = req.params.id;
     const playerId = parseInt(Array.isArray(rawId) ? rawId[0] : rawId, 10);
     const status = req.body.status || 'verified';
+
+    const meta = await queryGet<TournamentMeta>('SELECT max_players FROM tournament_meta WHERE id = 1');
+    const maxPlayers = meta?.max_players || 32;
+
+    if (status === 'verified') {
+      const verifiedRow = await queryGet<{ cnt: number }>(
+        "SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified' AND id != ?",
+        [playerId]
+      );
+      if ((verifiedRow?.cnt || 0) >= maxPlayers) {
+        return res.status(400).json({ detail: `Cannot verify: All ${maxPlayers} tournament slots have already been filled with verified payments!` });
+      }
+    }
+
     await queryRun('UPDATE players SET payment_status = ? WHERE id = ?', [status, playerId]);
-    res.json({ success: true, message: `Player payment marked as ${status}.` });
+
+    const updatedCount = await queryGet<{ cnt: number }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified'");
+    const totalVerified = updatedCount?.cnt || 0;
+
+    res.json({ 
+      success: true, 
+      message: totalVerified >= maxPlayers 
+        ? `Player verified! All ${maxPlayers} tournament slots are now confirmed.` 
+        : `Player payment marked as ${status}. (${totalVerified}/${maxPlayers} slots filled)` 
+    });
   } catch (err: any) {
     res.status(500).json({ detail: err.message });
   }

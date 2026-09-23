@@ -140,8 +140,8 @@ export default function RulesTab() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
           <div>
-            <strong style={{ color: '#fff' }}>1. Entry Fee Verification:</strong>
-            <p>Every player pays ₹100 via UPI QR code and submits their 12-digit UTR or screenshot. Only verified players are admitted into the tournament match rooms.</p>
+            <strong style={{ color: '#fff' }}>1. First-Come, First-Served Entry (32 Paid Slots Norm):</strong>
+            <p>Registration is open to everyone (more than 32 participants can register). However, official tournament slots are strictly locked in once 32 verified ₹100 payments are received. As soon as the 32nd payment is confirmed by the organizer, both registration and payment acceptance stop immediately.</p>
           </div>
 
           <div>

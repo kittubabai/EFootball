@@ -54,7 +54,7 @@ export default function HeroBanner({ tournamentStatus, playersCount }) {
         <div className="hero-stats-row">
           <div className="hero-stat-pill">
             <Users size={14} color="#00e5ff" />
-            <span>Slots: <strong>{registeredCount} / {maxPlayers}</strong> ({verifiedCount} Paid)</span>
+            <span>Slots: <strong>{verifiedCount} / 32 Paid</strong> ({registeredCount} Registered)</span>
           </div>
 
           <div className="hero-stat-pill">

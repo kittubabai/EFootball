@@ -83,6 +83,10 @@ export default function PaymentTab({ tournamentStatus, players, onPaymentSubmitt
     }
   };
 
+  const verifiedCount = tournamentStatus?.verified_count || 0;
+  const maxPlayers = tournamentStatus?.max_players || 32;
+  const isPaymentClosed = verifiedCount >= maxPlayers || tournamentStatus?.status !== 'registration';
+
   return (
     <div style={{ maxWidth: '880px', margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: '24px' }}>
@@ -91,7 +95,7 @@ export default function PaymentTab({ tournamentStatus, players, onPaymentSubmitt
           Scan & Pay Entry Fee (₹100)
         </h2>
         <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>
-          Anyone can register for free, but only players with confirmed payment will be admitted into the 4 tournament rooms (Groups A, B, C, D).
+          First-Come, First-Served: Anyone can register (even &gt;32 players), but tournament slots are locked for the first 32 verified payments. <strong>({verifiedCount} / {maxPlayers} Slots Confirmed)</strong>.
         </p>
       </div>
 
@@ -166,7 +170,15 @@ export default function PaymentTab({ tournamentStatus, players, onPaymentSubmitt
             </div>
           )}
 
-          {players.length === 0 ? (
+          {isPaymentClosed ? (
+            <div className="alert alert-info" style={{ marginTop: '10px' }}>
+              <ShieldCheck size={20} style={{ flexShrink: 0 }} />
+              <div>
+                <strong>All 32 Slots Confirmed & Paid!</strong><br />
+                All 32 tournament slots are now filled with verified payments. Payment submissions and registrations are officially closed.
+              </div>
+            </div>
+          ) : players.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '24px 0' }}>
               <p style={{ color: 'var(--text-dim)', marginBottom: '14px' }}>
                 You have not registered yet. Please register first, then pay and confirm your slot.

@@ -17,8 +17,9 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
   const registeredCount = tournamentStatus?.registered_count || players.length;
   const verifiedCount = tournamentStatus?.verified_count || 0;
   const maxPlayers = tournamentStatus?.max_players || 32;
-  const isRegistrationClosed = tournamentStatus?.status !== 'registration' || registeredCount >= maxPlayers;
-  const percentage = Math.min(100, Math.round((registeredCount / maxPlayers) * 100));
+  // Registration and payments ONLY close when 32 payments are confirmed or tournament is active
+  const isRegistrationClosed = tournamentStatus?.status !== 'registration' || verifiedCount >= maxPlayers;
+  const percentage = Math.min(100, Math.round((verifiedCount / maxPlayers) * 100));
 
   const handleChange = (e) => {
     setFormData(prev => ({
@@ -50,7 +51,7 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
         throw new Error(data.detail || 'Failed to register player.');
       }
 
-      setSuccessMsg(`Welcome, ${data.name}! You are registered. Please complete your ₹100 payment in the "Pay Entry Fee" tab to be admitted to the match rooms.`);
+      setSuccessMsg(`Welcome, ${data.name}! You are registered. Please complete your ₹100 payment in the "Pay Entry Fee" tab to lock in your confirmed slot among the 32 spots!`);
       setFormData({ name: '', efootball_id: '', whatsapp: '', team_name: '', utr_number: '' });
       if (onPlayerRegistered) onPlayerRegistered();
     } catch (err) {
@@ -85,10 +86,10 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
           </div>
           <div>
             <div style={{ fontWeight: '800', fontSize: '0.95rem' }}>
-              Registration is open to everyone!
+              Open Registration (More than 32 can register)!
             </div>
             <div style={{ color: 'var(--text-muted)', fontSize: '0.84rem' }}>
-              Only players who complete the ₹100 entry fee will be admitted to the 4 tournament rooms (Groups A, B, C, D).
+              First-Come, First-Served: The 32 tournament slots are locked once 32 payments are verified. When 32 payments are completed, registration & payments stop!
             </div>
           </div>
         </div>
@@ -108,13 +109,13 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
         {/* Left Column: Form */}
         <div>
           <div className="glass-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
               <h2 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <UserCheck className="glow-text-green" size={22} />
                 Player Registration
               </h2>
               <span style={{ fontSize: '0.88rem', fontWeight: '700', color: 'var(--accent-green)' }}>
-                {registeredCount} / {maxPlayers} Slots ({verifiedCount} Confirmed)
+                {verifiedCount} / {maxPlayers} Paid Slots Confirmed ({registeredCount} Registered)
               </span>
             </div>
 
@@ -148,8 +149,8 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
               <div className="alert alert-info">
                 <Info size={18} style={{ flexShrink: 0 }} />
                 <div>
-                  <strong>Registration is currently closed.</strong><br />
-                  All 32 slots are filled or tournament groups have commenced.
+                  <strong>All 32 Tournament Slots Are Confirmed!</strong><br />
+                  All 32 slots have been paid and verified. Registration and payments are officially closed.
                 </div>
               </div>
             ) : (
