@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserCheck, Shield, Sparkles, AlertCircle, CheckCircle2, Search, Info, ArrowRight, IndianRupee } from 'lucide-react';
+import { UserCheck, Shield, Sparkles, AlertCircle, CheckCircle2, Search, Info } from 'lucide-react';
 
 export default function RegistrationTab({ tournamentStatus, players, onPlayerRegistered, onSwitchToPayment }) {
   const [formData, setFormData] = useState({
@@ -69,41 +69,6 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
 
   return (
     <div>
-      {/* Information Alert */}
-      <div className="glass-card" style={{ 
-        marginBottom: '24px', 
-        padding: '16px 20px',
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '12px',
-        borderColor: 'rgba(0, 229, 255, 0.3)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(0, 229, 255, 0.12)', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <IndianRupee size={20} />
-          </div>
-          <div>
-            <div style={{ fontWeight: '800', fontSize: '0.95rem' }}>
-              Open Registration (More than 32 can register)!
-            </div>
-            <div style={{ color: 'var(--text-muted)', fontSize: '0.84rem' }}>
-              First-Come, First-Served: The 32 tournament slots are locked once 32 payments are verified. When 32 payments are completed, registration & payments stop!
-            </div>
-          </div>
-        </div>
-
-        <button 
-          onClick={onSwitchToPayment}
-          className="btn btn-outline"
-          style={{ borderColor: 'var(--accent-green)', color: 'var(--accent-green)', fontSize: '0.82rem', padding: '8px 14px' }}
-        >
-          <span>Pay Entry Fee (₹100)</span>
-          <ArrowRight size={14} />
-        </button>
-      </div>
-
       {/* Main Registration & Contenders Grid */}
       <div className="registration-layout">
         {/* Left Column: Form */}

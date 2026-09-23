@@ -339,42 +339,68 @@ h1, h2, h3, h4, h5, h6 {
 .tabs-nav {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: var(--bg-secondary);
   padding: 6px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
-  margin-bottom: 28px;
+  margin-bottom: 24px;
   overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .tab-btn {
-  display: flex;
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  border-radius: 10px;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 8px;
+  border-radius: 8px;
   background: transparent;
   color: var(--text-muted);
-  border: none;
-  font-size: 0.92rem;
-  font-weight: 600;
+  border: 1px solid transparent;
+  font-size: 0.86rem;
+  font-weight: 700;
   font-family: var(--font-heading);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  text-align: center;
 }
 
 .tab-btn:hover {
   color: var(--text-main);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .tab-btn.active {
-  background: linear-gradient(135deg, rgba(0, 255, 135, 0.16), rgba(0, 229, 255, 0.16));
+  background: linear-gradient(135deg, rgba(0, 255, 135, 0.18), rgba(0, 229, 255, 0.18));
   color: #ffffff;
-  border: 1px solid rgba(0, 255, 135, 0.35);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 255, 135, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+}
+
+.prize-pool-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 190, 11, 0.85) !important;
+  box-shadow: 0 4px 18px rgba(255, 190, 11, 0.35) !important;
+}
+
+@media (max-width: 1080px) {
+  .tabs-nav {
+    justify-content: flex-start;
+  }
+  .tab-btn {
+    flex: 0 0 auto;
+    padding: 8px 14px;
+    font-size: 0.84rem;
+  }
 }
 
 /* Card System */

@@ -11,6 +11,7 @@ import TopScorersTab from './components/TopScorersTab';
 import RulesTab from './components/RulesTab';
 import AdminModal from './components/AdminModal';
 import ScoreModal from './components/ScoreModal';
+import PrizesModal from './components/PrizesModal';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('register');
@@ -27,6 +28,7 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('ef_admin_logged') === 'true');
   const [adminPin, setAdminPin] = useState(() => localStorage.getItem('ef_admin_pin') || '');
   const [showAdminModal, setShowAdminModal] = useState(false);
+  const [showPrizesModal, setShowPrizesModal] = useState(false);
   const [activeScoreMatch, setActiveScoreMatch] = useState(null);
 
   // Fetch all tournament data
@@ -104,13 +106,14 @@ export default function App() {
       <HeroBanner 
         tournamentStatus={tournamentStatus}
         playersCount={players.length}
+        onOpenPrizes={() => setShowPrizesModal(true)}
       />
 
       {/* Champion Banner if finished */}
       {champion && (
         <div className="glass-card" style={{ 
           marginBottom: '24px', 
-          background: 'linear-gradient(135deg, rgba(255, 190, 11, 0.15), rgba(0, 255, 135, 0.15))',
+          background: 'linear-gradient(135deg, rgba(255, 190, 11, 0.15), rgba(0, 255, 135, 0.15))', 
           borderColor: 'rgba(255, 190, 11, 0.4)',
           textAlign: 'center',
           padding: '24px'
@@ -131,23 +134,23 @@ export default function App() {
           className={`tab-btn ${activeTab === 'register' ? 'active' : ''}`}
           onClick={() => { setActiveTab('register'); localStorage.setItem('tab_chosen', 'true'); }}
         >
-          <UserPlus size={17} />
-          <span>Register ({players.length} Registered)</span>
+          <UserPlus size={16} />
+          <span>Register ({players.length})</span>
         </button>
 
         <button 
           className={`tab-btn ${activeTab === 'payment' ? 'active' : ''}`}
           onClick={() => { setActiveTab('payment'); localStorage.setItem('tab_chosen', 'true'); }}
         >
-          <QrCode size={17} />
-          <span>Pay Entry Fee (₹100) • {tournamentStatus?.verified_count || 0}/32 Paid</span>
+          <QrCode size={16} />
+          <span>Pay Fee (₹100) • {tournamentStatus?.verified_count || 0}/32</span>
         </button>
 
         <button 
           className={`tab-btn ${activeTab === 'bracket' ? 'active' : ''}`}
           onClick={() => { setActiveTab('bracket'); localStorage.setItem('tab_chosen', 'true'); }}
         >
-          <GitFork size={17} />
+          <GitFork size={16} />
           <span>Knockout Bracket</span>
         </button>
 
@@ -155,7 +158,7 @@ export default function App() {
           className={`tab-btn ${activeTab === 'fixtures' ? 'active' : ''}`}
           onClick={() => { setActiveTab('fixtures'); localStorage.setItem('tab_chosen', 'true'); }}
         >
-          <Calendar size={17} />
+          <Calendar size={16} />
           <span>Fixtures & Results</span>
         </button>
 
@@ -163,7 +166,7 @@ export default function App() {
           className={`tab-btn ${activeTab === 'scorers' ? 'active' : ''}`}
           onClick={() => { setActiveTab('scorers'); localStorage.setItem('tab_chosen', 'true'); }}
         >
-          <Target size={17} />
+          <Target size={16} />
           <span>Top Scorers ⚽ (₹200)</span>
         </button>
 
@@ -171,7 +174,7 @@ export default function App() {
           className={`tab-btn ${activeTab === 'rules' ? 'active' : ''}`}
           onClick={() => { setActiveTab('rules'); localStorage.setItem('tab_chosen', 'true'); }}
         >
-          <BookOpen size={17} />
+          <BookOpen size={16} />
           <span>14-Min Match Rules</span>
         </button>
       </nav>
@@ -247,6 +250,12 @@ export default function App() {
           onScoreUpdated={fetchData}
         />
       )}
+
+      {/* Official Prize Money Distribution Modal */}
+      <PrizesModal 
+        isOpen={showPrizesModal}
+        onClose={() => setShowPrizesModal(false)}
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Trophy, Clock, Users, Flame, Calendar, IndianRupee } from 'lucide-react';
 
-export default function HeroBanner({ tournamentStatus, playersCount }) {
+export default function HeroBanner({ tournamentStatus, playersCount, onOpenPrizes }) {
   const registeredCount = tournamentStatus?.registered_count || playersCount || 0;
   const verifiedCount = tournamentStatus?.verified_count || 0;
   const maxPlayers = tournamentStatus?.max_players || 32;
@@ -66,10 +66,27 @@ export default function HeroBanner({ tournamentStatus, playersCount }) {
             <span style={{ color: '#00ff87', fontWeight: '700' }}>🟢 Form: <strong>Excellent Only</strong></span>
           </div>
 
-          <div className="hero-stat-pill" style={{ borderColor: 'rgba(255, 190, 11, 0.4)', background: 'rgba(255, 190, 11, 0.08)' }}>
+          <button 
+            type="button"
+            onClick={onOpenPrizes}
+            className="hero-stat-pill prize-pool-btn" 
+            title="Click to view full prize money distribution"
+            style={{ 
+              borderColor: 'rgba(255, 190, 11, 0.6)', 
+              background: 'linear-gradient(135deg, rgba(255, 190, 11, 0.18), rgba(255, 190, 11, 0.05))',
+              cursor: 'pointer',
+              color: '#fff',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontFamily: 'inherit',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 12px rgba(255, 190, 11, 0.2)'
+            }}
+          >
             <Trophy size={14} color="#ffbe0b" />
-            <span>Prizes: <strong style={{ color: '#ffbe0b' }}>₹2,400 + ₹200 Golden Boot</strong></span>
-          </div>
+            <span>Prizes: <strong style={{ color: '#ffbe0b' }}>₹2,400 + ₹200 Golden Boot</strong> ↗</span>
+          </button>
         </div>
       </div>
 
