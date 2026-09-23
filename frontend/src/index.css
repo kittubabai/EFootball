@@ -387,9 +387,44 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .prize-pool-btn:hover {
-  transform: translateY(-1px);
-  border-color: rgba(255, 190, 11, 0.85) !important;
-  box-shadow: 0 4px 18px rgba(255, 190, 11, 0.35) !important;
+  transform: translateY(-1px) scale(1.03);
+  border-color: rgba(255, 190, 11, 0.95) !important;
+  box-shadow: 0 4px 22px rgba(255, 190, 11, 0.45) !important;
+}
+
+/* Star Blinking and Pulsing for Prizes Button */
+.star-blink-icon {
+  animation: starBlink 1.2s infinite ease-in-out;
+  color: #ffbe0b;
+  display: inline-block;
+}
+
+@keyframes starBlink {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1.1) rotate(0deg);
+    filter: drop-shadow(0 0 6px rgba(255, 190, 11, 0.95));
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.7) rotate(-15deg);
+    filter: drop-shadow(0 0 1px rgba(255, 190, 11, 0.2));
+  }
+}
+
+.prizes-btn-highlight {
+  animation: prizePulse 2s infinite ease-in-out;
+}
+
+@keyframes prizePulse {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(255, 190, 11, 0.35), inset 0 0 6px rgba(255, 190, 11, 0.15);
+    border-color: rgba(255, 190, 11, 0.75);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(255, 190, 11, 0.7), inset 0 0 12px rgba(255, 190, 11, 0.3);
+    border-color: rgba(255, 215, 0, 1);
+  }
 }
 
 @media (max-width: 1080px) {

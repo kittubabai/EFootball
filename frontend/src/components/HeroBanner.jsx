@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy, Clock, Users, Flame, Calendar, IndianRupee } from 'lucide-react';
+import { Trophy, Clock, Users, Flame, Calendar, IndianRupee, Sparkles } from 'lucide-react';
 
 export default function HeroBanner({ tournamentStatus, playersCount, onOpenPrizes }) {
   const registeredCount = tournamentStatus?.registered_count || playersCount || 0;
@@ -69,23 +69,26 @@ export default function HeroBanner({ tournamentStatus, playersCount, onOpenPrize
           <button 
             type="button"
             onClick={onOpenPrizes}
-            className="hero-stat-pill prize-pool-btn" 
-            title="Click to view full prize money distribution"
+            className="hero-stat-pill prize-pool-btn prizes-btn-highlight" 
+            title="Click to view tournament prize pool distribution"
             style={{ 
-              borderColor: 'rgba(255, 190, 11, 0.6)', 
-              background: 'linear-gradient(135deg, rgba(255, 190, 11, 0.18), rgba(255, 190, 11, 0.05))',
+              borderColor: 'rgba(255, 190, 11, 0.75)', 
+              background: 'linear-gradient(135deg, rgba(255, 190, 11, 0.22), rgba(255, 190, 11, 0.06))',
               cursor: 'pointer',
               color: '#fff',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '6px',
+              gap: '7px',
+              padding: '6px 16px',
               fontFamily: 'inherit',
               transition: 'all 0.2s ease',
-              boxShadow: '0 2px 12px rgba(255, 190, 11, 0.2)'
+              fontSize: '0.88rem'
             }}
           >
+            <Sparkles size={15} className="star-blink-icon" />
             <Trophy size={14} color="#ffbe0b" />
-            <span>Prizes: <strong style={{ color: '#ffbe0b' }}>₹2,400 + ₹200 Golden Boot</strong> ↗</span>
+            <span style={{ color: '#ffbe0b', fontWeight: '800', letterSpacing: '0.02em' }}>Prizes</span>
+            <Sparkles size={13} className="star-blink-icon" style={{ animationDelay: '0.6s' }} />
           </button>
         </div>
       </div>
