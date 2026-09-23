@@ -29,7 +29,7 @@ export default function HeroBanner({ tournamentStatus, playersCount }) {
         </div>
 
         <h1 className="hero-title-main">
-          Jadupur eFootball Cup
+          Pantihal eFootball Cup
         </h1>
 
         <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', maxWidth: '440px', margin: '0 auto' }}>

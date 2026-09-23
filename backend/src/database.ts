@@ -60,7 +60,7 @@ export async function initDb(): Promise<void> {
   if (!existingMeta) {
     await queryRun(`
       INSERT INTO tournament_meta (id, title, status, admin_pin, max_players, match_time_mins)
-      VALUES (1, 'Jadupur eFootball Cup 2026', 'registration', '1234', 32, 7)
+      VALUES (1, 'Pantihal eFootball Cup 2026', 'registration', '1234', 32, 7)
     `);
   }
 
