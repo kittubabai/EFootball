@@ -45,7 +45,7 @@ export async function initDb(): Promise<void> {
       id INTEGER PRIMARY KEY,
       title TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'registration',
-      admin_pin TEXT NOT NULL DEFAULT '1234',
+      admin_pin TEXT NOT NULL DEFAULT '0903',
       max_players INTEGER NOT NULL DEFAULT 32,
       match_time_mins INTEGER NOT NULL DEFAULT 14,
       event_date TEXT NOT NULL DEFAULT '18th October 2026',
@@ -63,10 +63,13 @@ export async function initDb(): Promise<void> {
         id, title, status, admin_pin, max_players, match_time_mins,
         event_date, event_time, entry_fee, upi_id, upi_name
       ) VALUES (
-        1, 'Pantihal eFootball Cup 2026', 'registration', '1234', 32, 14,
+        1, 'Pantihal eFootball Cup 2026', 'registration', '0903', 32, 14,
         '18th October 2026', '11:00 AM onwards', 100, 'sayantanbabu2000-1@oksbi', 'Sayantan Chakraborty'
       )
     `);
+  } else {
+    // Ensure admin PIN is updated to requested value if it was the previous default
+    await pool.query(`UPDATE tournament_meta SET admin_pin = '0903' WHERE id = 1 AND admin_pin = '1234'`);
   }
 
   // 2. players table
