@@ -2,36 +2,39 @@
   --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
-  /* Color Palette - Dark Default */
-  --bg-primary: #080c14;
-  --bg-secondary: #0d1424;
-  --bg-card: rgba(16, 24, 42, 0.75);
-  --bg-card-hover: rgba(22, 34, 60, 0.85);
-  --bg-glass: rgba(13, 20, 36, 0.65);
+  /* Color Palette - Champions Gold & Dark Luxury */
+  --bg-primary: #07090e;
+  --bg-secondary: #0d111a;
+  --bg-card: rgba(18, 22, 33, 0.82);
+  --bg-card-hover: rgba(26, 32, 48, 0.9);
+  --bg-glass: rgba(13, 17, 26, 0.72);
 
-  --accent-green: #00ff87;
-  --accent-green-glow: rgba(0, 255, 135, 0.25);
-  --accent-cyan: #00e5ff;
-  --accent-cyan-glow: rgba(0, 229, 255, 0.25);
-  --accent-purple: #9d4edd;
-  --accent-gold: #ffbe0b;
-  --accent-red: #ff3366;
+  /* Primary Gold / Amber Luxury Accents */
+  --accent-green: #e5b94c; /* Gold primary highlight */
+  --accent-green-glow: rgba(229, 185, 76, 0.3);
+  --accent-cyan: #ffd166; /* Bright luminous gold */
+  --accent-cyan-glow: rgba(255, 209, 102, 0.3);
+  --accent-purple: #c77dff;
+  --accent-gold: #f3c246; /* Rich championship gold */
+  --accent-gold-glow: rgba(243, 194, 70, 0.4);
+  --accent-amber: #ff9e00;
+  --accent-red: #ff4d6d;
 
-  --text-main: #f0f4f8;
-  --text-muted: #8b9bb4;
-  --text-dim: #546580;
+  --text-main: #f8fafc;
+  --text-muted: #9ba8ba;
+  --text-dim: #64748b;
 
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-glow: rgba(0, 255, 135, 0.35);
+  --border-color: rgba(229, 185, 76, 0.14);
+  --border-glow: rgba(229, 185, 76, 0.45);
 
   --radius-sm: 8px;
   --radius-md: 14px;
   --radius-lg: 20px;
   --radius-full: 9999px;
 
-  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
-  --shadow-glow: 0 0 20px var(--accent-green-glow);
+  --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 25px var(--accent-gold-glow);
 }
 
 
@@ -70,14 +73,14 @@ body {
 
 /* Legends Showcase Banner */
 .legends-hero-banner {
-  background: linear-gradient(135deg, rgba(13, 20, 36, 0.88), rgba(8, 14, 26, 0.92));
-  border: 1px solid rgba(0, 255, 135, 0.25);
+  background: linear-gradient(135deg, rgba(16, 20, 30, 0.92), rgba(10, 14, 22, 0.96));
+  border: 1px solid rgba(229, 185, 76, 0.3);
   border-radius: var(--radius-lg);
   padding: 24px;
   margin-bottom: 24px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 0 30px rgba(0, 255, 135, 0.08);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), 0 0 30px rgba(229, 185, 76, 0.12);
   display: grid;
   grid-template-columns: 200px 1fr 200px;
   align-items: center;
@@ -107,13 +110,13 @@ body {
 }
 
 .legend-showcase-card.messi {
-  border-color: rgba(0, 229, 255, 0.4);
-  box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+  border-color: rgba(229, 185, 76, 0.5);
+  box-shadow: 0 0 22px rgba(229, 185, 76, 0.25);
 }
 
 .legend-showcase-card.ronaldo {
-  border-color: rgba(255, 190, 11, 0.4);
-  box-shadow: 0 0 20px rgba(255, 190, 11, 0.2);
+  border-color: rgba(255, 190, 11, 0.5);
+  box-shadow: 0 0 22px rgba(255, 190, 11, 0.25);
 }
 
 .legend-img {
@@ -155,9 +158,9 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(0, 255, 135, 0.12);
-  border: 1px solid rgba(0, 255, 135, 0.3);
-  color: var(--accent-green);
+  background: rgba(229, 185, 76, 0.15);
+  border: 1px solid rgba(229, 185, 76, 0.4);
+  color: var(--accent-gold);
   padding: 4px 14px;
   border-radius: var(--radius-full);
   font-size: 0.76rem;
@@ -172,7 +175,7 @@ body {
   font-weight: 900;
   font-family: var(--font-heading);
   letter-spacing: -0.02em;
-  background: linear-gradient(135deg, #ffffff 0%, #00ff87 60%, #00e5ff 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #ffd166 45%, #f3c246 80%, #ff9e00 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   line-height: 1.15;
@@ -274,26 +277,26 @@ h1, h2, h3, h4, h5, h6 {
   width: 46px;
   height: 46px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #00ff87, #00e5ff);
+  background: linear-gradient(135deg, #ffd166, #ff9e00);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #040810;
-  box-shadow: 0 0 20px var(--accent-green-glow);
+  box-shadow: 0 0 22px var(--accent-gold-glow);
 }
 
 .brand-title {
   font-size: 1.45rem;
   font-weight: 800;
   line-height: 1.1;
-  background: linear-gradient(to right, #ffffff, #c2d5ee);
+  background: linear-gradient(to right, #ffffff, #ffe399);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .brand-sub {
   font-size: 0.8rem;
-  color: var(--accent-cyan);
+  color: var(--accent-gold);
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -351,21 +354,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .badge-live {
-  background: rgba(0, 255, 135, 0.12);
-  color: var(--accent-green);
-  border: 1px solid rgba(0, 255, 135, 0.3);
+  background: rgba(229, 185, 76, 0.15);
+  color: var(--accent-gold);
+  border: 1px solid rgba(229, 185, 76, 0.45);
 }
 
 .badge-pending {
-  background: rgba(0, 229, 255, 0.12);
+  background: rgba(255, 209, 102, 0.12);
   color: var(--accent-cyan);
-  border: 1px solid rgba(0, 229, 255, 0.3);
+  border: 1px solid rgba(255, 209, 102, 0.35);
 }
 
 .badge-completed {
-  background: rgba(255, 190, 11, 0.12);
+  background: rgba(255, 190, 11, 0.15);
   color: var(--accent-gold);
-  border: 1px solid rgba(255, 190, 11, 0.3);
+  border: 1px solid rgba(255, 190, 11, 0.45);
 }
 
 .pulse-dot {
@@ -429,10 +432,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .tab-btn.active {
-  background: linear-gradient(135deg, rgba(0, 255, 135, 0.18), rgba(0, 229, 255, 0.18));
+  background: linear-gradient(135deg, rgba(229, 185, 76, 0.22), rgba(255, 158, 0, 0.22));
   color: #ffffff;
-  border: 1px solid rgba(0, 255, 135, 0.4);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(229, 185, 76, 0.5);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
 }
 
 .prize-pool-btn:hover {
@@ -588,8 +591,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .form-input:focus {
-  border-color: var(--accent-green);
-  box-shadow: 0 0 0 3px rgba(0, 255, 135, 0.15);
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px rgba(229, 185, 76, 0.2);
 }
 
 .form-input::placeholder {
@@ -614,14 +617,14 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-green), #00e08f);
-  color: #040910;
-  box-shadow: 0 4px 18px var(--accent-green-glow);
+  background: linear-gradient(135deg, #ffd166 0%, #f3c246 50%, #e59819 100%);
+  color: #060910;
+  box-shadow: 0 4px 18px var(--accent-gold-glow);
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 22px rgba(0, 255, 135, 0.4);
+  box-shadow: 0 6px 24px rgba(243, 194, 70, 0.55);
 }
 
 .btn-primary:disabled {
@@ -1067,9 +1070,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .alert-success {
-  background: rgba(0, 255, 135, 0.12);
-  border: 1px solid rgba(0, 255, 135, 0.35);
-  color: var(--accent-green);
+  background: rgba(229, 185, 76, 0.15);
+  border: 1px solid rgba(229, 185, 76, 0.45);
+  color: var(--accent-gold);
 }
 
 .alert-error {
@@ -1079,8 +1082,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .alert-info {
-  background: rgba(0, 229, 255, 0.12);
-  border: 1px solid rgba(0, 229, 255, 0.35);
+  background: rgba(255, 209, 102, 0.12);
+  border: 1px solid rgba(255, 209, 102, 0.35);
   color: var(--accent-cyan);
 }
 
@@ -1099,7 +1102,7 @@ h1, h2, h3, h4, h5, h6 {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+  background: linear-gradient(135deg, #ffd166, #ff9e00);
   color: #050a12;
   font-weight: 800;
   display: flex;
