@@ -85,7 +85,7 @@ export default function PaymentTab({ tournamentStatus, players, onPaymentSubmitt
 
   const verifiedCount = tournamentStatus?.verified_count || 0;
   const maxPlayers = tournamentStatus?.max_players || 32;
-  const isPaymentClosed = verifiedCount >= maxPlayers || tournamentStatus?.status !== 'registration';
+  const isPaymentClosed = Boolean(tournamentStatus && (verifiedCount >= maxPlayers || tournamentStatus.status !== 'registration'));
 
   return (
     <div style={{ maxWidth: '880px', margin: '0 auto' }}>

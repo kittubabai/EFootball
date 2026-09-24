@@ -33,7 +33,7 @@ export default function Navbar({ tournamentStatus, isAdmin, onOpenAdmin }) {
         </div>
         <div>
           <div className="brand-sub">eFootball Mobile 2026</div>
-          <h1 className="brand-title">{tournamentStatus?.title || '32-Player Knockout Cup'}</h1>
+          <h1 className="brand-title">{tournamentStatus?.title || 'Pantihal eFootball Cup'}</h1>
         </div>
       </div>
 

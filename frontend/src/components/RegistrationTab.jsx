@@ -17,8 +17,8 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
   const registeredCount = tournamentStatus?.registered_count || players.length;
   const verifiedCount = tournamentStatus?.verified_count || 0;
   const maxPlayers = tournamentStatus?.max_players || 32;
-  // Registration and payments ONLY close when 32 payments are confirmed or tournament is active
-  const isRegistrationClosed = tournamentStatus?.status !== 'registration' || verifiedCount >= maxPlayers;
+  // Registration and payments ONLY close when 32 payments are confirmed or tournament is active (and status is loaded)
+  const isRegistrationClosed = Boolean(tournamentStatus && (tournamentStatus.status !== 'registration' || verifiedCount >= maxPlayers));
   const percentage = Math.min(100, Math.round((verifiedCount / maxPlayers) * 100));
 
   const handleChange = (e) => {
