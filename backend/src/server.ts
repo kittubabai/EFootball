@@ -90,12 +90,25 @@ app.get('/api/status', async (_req: Request, res: Response) => {
     const totalCount = await queryGet<{ cnt: string }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active'");
     const verifiedCount = await queryGet<{ cnt: string }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified'");
 
+    const vCount = parseInt(String(verifiedCount?.cnt || '0'), 10);
+    const maxP = meta?.max_players || 32;
+
+    let currentStatus = meta?.status || 'registration';
+    // If status was marked in_progress but verified players dropped below max_players and no match scores have been recorded, auto-revert to registration
+    if (currentStatus === 'in_progress' && vCount < maxP) {
+      const completedMatches = await queryGet<{ cnt: string }>("SELECT COUNT(*) as cnt FROM matches WHERE status = 'completed' AND player1_score IS NOT NULL AND player2_score IS NOT NULL");
+      if (parseInt(String(completedMatches?.cnt || '0'), 10) === 0) {
+        currentStatus = 'registration';
+        await queryRun("UPDATE tournament_meta SET status = 'registration' WHERE id = 1");
+      }
+    }
+
     const result: TournamentStatusResponse = {
       title: meta?.title || 'Pantihal eFootball Cup 2026',
-      status: meta?.status || 'registration',
+      status: currentStatus,
       registered_count: parseInt(String(totalCount?.cnt || '0'), 10),
-      verified_count: parseInt(String(verifiedCount?.cnt || '0'), 10),
-      max_players: meta?.max_players || 32,
+      verified_count: vCount,
+      max_players: maxP,
       match_time_mins: meta?.match_time_mins || 14,
       event_date: meta?.event_date || '18th October 2026',
       event_time: meta?.event_time || '11:00 AM onwards',
@@ -118,8 +131,8 @@ app.post('/api/players/register', async (req: Request, res: Response) => {
     }
 
     const meta = await queryGet<TournamentMeta>('SELECT status, max_players FROM tournament_meta WHERE id = 1');
-    if (meta?.status !== 'registration') {
-      return res.status(400).json({ detail: 'Registration is currently closed for this tournament.' });
+    if (meta?.status === 'completed') {
+      return res.status(400).json({ detail: 'Registration is closed because the tournament has concluded.' });
     }
 
     // Unlimited registrations allowed until 32 VERIFIED PAYMENTS are confirmed
@@ -160,8 +173,8 @@ app.post(['/api/players/:id/submit-payment', '/api/players/:id/submit-utr'], asy
     const { utr_number, payment_screenshot } = req.body;
 
     const meta = await queryGet<TournamentMeta>('SELECT status, max_players FROM tournament_meta WHERE id = 1');
-    if (meta?.status !== 'registration') {
-      return res.status(400).json({ detail: 'Payment submissions are closed as tournament groups have already begun.' });
+    if (meta?.status === 'completed') {
+      return res.status(400).json({ detail: 'Payment submissions are closed as the tournament has concluded.' });
     }
 
     // Check if 32 payments are already verified
@@ -465,6 +478,25 @@ app.delete('/api/admin/players/:id', verifyAdminPin, async (req: Request, res: R
     const rawId = req.params.id;
     const playerId = parseInt(Array.isArray(rawId) ? rawId[0] : rawId, 10);
     await queryRun('DELETE FROM players WHERE id = $1', [playerId]);
+
+    // Clear any unplayed match slot references
+    await queryRun("UPDATE matches SET player1_id = NULL WHERE player1_id = $1 AND status != 'completed'", [playerId]);
+    await queryRun("UPDATE matches SET player2_id = NULL WHERE player2_id = $1 AND status != 'completed'", [playerId]);
+    await queryRun("UPDATE matches SET winner_id = NULL WHERE winner_id = $1 AND status != 'completed'", [playerId]);
+
+    // Check if verified count dropped below max_players
+    const verifiedRow = await queryGet<{ cnt: string }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified'");
+    const totalVerified = parseInt(String(verifiedRow?.cnt || '0'), 10);
+    const meta = await queryGet<TournamentMeta>('SELECT max_players, status FROM tournament_meta WHERE id = 1');
+    const maxPlayers = meta?.max_players || 32;
+
+    if (totalVerified < maxPlayers && meta?.status === 'in_progress') {
+      const completedMatches = await queryGet<{ cnt: string }>("SELECT COUNT(*) as cnt FROM matches WHERE status = 'completed' AND player1_score IS NOT NULL AND player2_score IS NOT NULL");
+      if (parseInt(String(completedMatches?.cnt || '0'), 10) === 0) {
+        await queryRun("UPDATE tournament_meta SET status = 'registration' WHERE id = 1");
+      }
+    }
+
     res.json({ success: true, message: 'Player removed successfully.' });
   } catch (err: any) {
     res.status(500).json({ detail: err.message });

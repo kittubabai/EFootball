@@ -55,7 +55,7 @@ export default function App() {
       if (statusRes.ok) {
         const s = await statusRes.json();
         setTournamentStatus(s);
-        if (s.status !== 'registration' && activeTab === 'register' && !localStorage.getItem('tab_chosen')) {
+        if ((s.status === 'completed' || (s.verified_count >= s.max_players)) && activeTab === 'register' && !localStorage.getItem('tab_chosen')) {
           setActiveTab('bracket');
         }
       }

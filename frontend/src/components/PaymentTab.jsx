@@ -85,7 +85,12 @@ export default function PaymentTab({ tournamentStatus, players, onPaymentSubmitt
 
   const verifiedCount = tournamentStatus?.verified_count || 0;
   const maxPlayers = tournamentStatus?.max_players || 32;
-  const isPaymentClosed = Boolean(tournamentStatus && (verifiedCount >= maxPlayers || tournamentStatus.status !== 'registration'));
+  const isPaymentClosed = Boolean(
+    tournamentStatus && (
+      tournamentStatus.status === 'completed' || 
+      verifiedCount >= maxPlayers
+    )
+  );
 
   return (
     <div style={{ maxWidth: '880px', margin: '0 auto' }}>
@@ -174,8 +179,17 @@ export default function PaymentTab({ tournamentStatus, players, onPaymentSubmitt
             <div className="alert alert-info" style={{ marginTop: '10px' }}>
               <ShieldCheck size={20} style={{ flexShrink: 0 }} />
               <div>
-                <strong>All 32 Slots Confirmed & Paid!</strong><br />
-                All 32 tournament slots are now filled with verified payments. Payment submissions and registrations are officially closed.
+                {tournamentStatus?.status === 'completed' ? (
+                  <>
+                    <strong>Tournament Concluded!</strong><br />
+                    The tournament has ended. No further entry fee submissions are being accepted.
+                  </>
+                ) : (
+                  <>
+                    <strong>All 32 Slots Confirmed & Paid!</strong><br />
+                    All 32 tournament slots are now filled with verified payments. Payment submissions and registrations are officially closed.
+                  </>
+                )}
               </div>
             </div>
           ) : players.length === 0 ? (

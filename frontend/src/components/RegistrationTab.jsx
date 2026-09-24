@@ -17,8 +17,13 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
   const registeredCount = tournamentStatus?.registered_count || players.length;
   const verifiedCount = tournamentStatus?.verified_count || 0;
   const maxPlayers = tournamentStatus?.max_players || 32;
-  // Registration and payments ONLY close when 32 payments are confirmed or tournament is active (and status is loaded)
-  const isRegistrationClosed = Boolean(tournamentStatus && (tournamentStatus.status !== 'registration' || verifiedCount >= maxPlayers));
+  // Registration and payments ONLY close when all 32 payments are verified or tournament is completed
+  const isRegistrationClosed = Boolean(
+    tournamentStatus && (
+      tournamentStatus.status === 'completed' || 
+      verifiedCount >= maxPlayers
+    )
+  );
   const percentage = Math.min(100, Math.round((verifiedCount / maxPlayers) * 100));
 
   const handleChange = (e) => {
@@ -160,8 +165,17 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
               <div className="alert alert-info">
                 <Info size={18} style={{ flexShrink: 0 }} />
                 <div>
-                  <strong>All 32 Tournament Slots Are Confirmed!</strong><br />
-                  All 32 slots have been paid and verified. Registration and payments are officially closed.
+                  {tournamentStatus?.status === 'completed' ? (
+                    <>
+                      <strong>Tournament Completed!</strong><br />
+                      The Pantihal eFootball Cup has officially concluded. Thank you to all participants!
+                    </>
+                  ) : (
+                    <>
+                      <strong>All 32 Tournament Slots Are Confirmed!</strong><br />
+                      All 32 slots have been paid and verified. Registration and payments are officially closed.
+                    </>
+                  )}
                 </div>
               </div>
             ) : (
