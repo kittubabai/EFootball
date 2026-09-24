@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, Clock, Users, Flame, Calendar, IndianRupee, Sparkles, Timer } from 'lucide-react';
 
-export default function HeroBanner({ tournamentStatus, playersCount, onOpenPrizes }) {
+export default function HeroBanner({ tournamentStatus, playersCount, onOpenPrizes, onNavigate }) {
   const registeredCount = tournamentStatus?.registered_count || playersCount || 0;
   const verifiedCount = tournamentStatus?.verified_count || 0;
   const maxPlayers = tournamentStatus?.max_players || 32;
@@ -138,6 +138,28 @@ export default function HeroBanner({ tournamentStatus, playersCount, onOpenPrize
             <Sparkles size={13} className="star-blink-icon" style={{ animationDelay: '0.6s' }} />
           </button>
         </div>
+
+        {/* Quick Action Buttons for Home View */}
+        {onNavigate && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '16px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => onNavigate('register')}
+              className="btn btn-primary"
+              style={{ padding: '10px 22px', fontSize: '0.92rem' }}
+            >
+              <span>Register Now</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigate('payment')}
+              className="btn btn-outline"
+              style={{ padding: '10px 20px', fontSize: '0.92rem', borderColor: 'rgba(229,185,76,0.4)', color: 'var(--accent-gold)' }}
+            >
+              <span>Pay Entry Fee (₹100)</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Right: Ronaldo Feature Card */}

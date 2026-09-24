@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { UserPlus, GitFork, Calendar, BookOpen, Trophy, QrCode, Target } from 'lucide-react';
+import { Home, UserPlus, GitFork, Calendar, BookOpen, Trophy, QrCode, Target } from 'lucide-react';
 
 import Navbar from './components/Navbar';
 import HeroBanner from './components/HeroBanner';
@@ -14,7 +14,7 @@ import ScoreModal from './components/ScoreModal';
 import PrizesModal from './components/PrizesModal';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('register');
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('tab_chosen_id') || 'home');
   const [tournamentStatus, setTournamentStatus] = useState(null);
   const [players, setPlayers] = useState([]);
   const [bracketData, setBracketData] = useState({ 
@@ -33,6 +33,7 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navItems = [
+    { id: 'home', label: 'Tournament Overview', icon: Home },
     { id: 'register', label: `Register (${players.length})`, icon: UserPlus },
     { id: 'payment', label: `Pay Fee (₹100) • ${tournamentStatus?.verified_count || 0}/32`, icon: QrCode },
     { id: 'bracket', label: 'Knockout Bracket', icon: GitFork },
@@ -43,7 +44,7 @@ export default function App() {
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
-    localStorage.setItem('tab_chosen', 'true');
+    localStorage.setItem('tab_chosen_id', tabId);
     setIsSidebarOpen(false); // Auto close sidebar on mobile when tab is tapped
   };
 
@@ -165,13 +166,6 @@ export default function App() {
 
         {/* Right Main Body Content */}
         <div className="main-content-column">
-          {/* Messi & Ronaldo eFootball Hero Showcase */}
-          <HeroBanner 
-            tournamentStatus={tournamentStatus}
-            playersCount={players.length}
-            onOpenPrizes={() => setShowPrizesModal(true)}
-          />
-
           {/* Champion Banner if finished */}
           {champion && (
             <div className="glass-card" style={{ 
@@ -193,6 +187,17 @@ export default function App() {
 
           {/* Tab Views */}
           <main style={{ flexGrow: 1 }}>
+            {activeTab === 'home' && (
+              <div>
+                <HeroBanner 
+                  tournamentStatus={tournamentStatus}
+                  playersCount={players.length}
+                  onOpenPrizes={() => setShowPrizesModal(true)}
+                  onNavigate={handleTabChange}
+                />
+              </div>
+            )}
+
             {activeTab === 'register' && (
               <RegistrationTab 
                 tournamentStatus={tournamentStatus}
