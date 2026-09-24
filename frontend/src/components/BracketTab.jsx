@@ -2,25 +2,14 @@ import React, { useState } from 'react';
 import { Trophy, Award, Edit3, HelpCircle, Users, Medal, ChevronDown, ChevronUp, ChevronsUpDown, Sparkles } from 'lucide-react';
 
 export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
-  // Collapsible state for each section: A, B, C, D, FINALS (false = expanded, true = collapsed)
-  const [collapsed, setCollapsed] = useState({
-    A: false,
-    B: false,
-    C: false,
-    D: false,
-    FINALS: false
+  // Accordion state: only one section open at a time (A, B, C, D, FINALS, or null)
+  const [openSection, setOpenSection] = useState(() => {
+    if (bracketData?.finals?.podium?.first) return 'FINALS';
+    return 'A';
   });
 
   const toggleSection = (key) => {
-    setCollapsed(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const expandAll = () => {
-    setCollapsed({ A: false, B: false, C: false, D: false, FINALS: false });
-  };
-
-  const collapseAll = () => {
-    setCollapsed({ A: true, B: true, C: true, D: true, FINALS: true });
+    setOpenSection(prev => (prev === key ? null : key));
   };
 
   const status = bracketData?.tournament_status;
@@ -137,7 +126,7 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
   const renderGroupSection = (groupKey) => {
     const group = groups[groupKey];
     if (!group) return null;
-    const isCollapsed = Boolean(collapsed[groupKey]);
+    const isCollapsed = openSection !== groupKey;
     const winner = group.winner;
     const qfMatches = group.matches?.filter(m => m.round_index === 1) || [];
     const sfMatches = group.matches?.filter(m => m.round_index === 2) || [];
@@ -151,8 +140,9 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
           marginBottom: '20px', 
           padding: 0, 
           overflow: 'hidden',
-          borderColor: isCollapsed ? 'var(--border-color)' : 'rgba(0, 229, 255, 0.35)',
-          transition: 'border-color 0.2s ease'
+          borderColor: isCollapsed ? 'var(--border-color)' : 'rgba(0, 229, 255, 0.4)',
+          boxShadow: isCollapsed ? 'none' : '0 8px 30px rgba(0, 229, 255, 0.08)',
+          transition: 'all 0.25s ease'
         }}
       >
         {/* Collapsible Accordion Header */}
@@ -164,7 +154,7 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
             justifyContent: 'space-between',
             alignItems: 'center',
             cursor: 'pointer',
-            background: isCollapsed ? 'rgba(255, 255, 255, 0.02)' : 'linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(0, 255, 135, 0.04))',
+            background: isCollapsed ? 'rgba(255, 255, 255, 0.02)' : 'linear-gradient(135deg, rgba(0, 229, 255, 0.12), rgba(0, 255, 135, 0.05))',
             borderBottom: isCollapsed ? 'none' : '1px solid rgba(255, 255, 255, 0.08)',
             userSelect: 'none'
           }}
@@ -174,9 +164,9 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
               width: '38px',
               height: '38px',
               borderRadius: '8px',
-              background: 'linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 255, 135, 0.15))',
-              border: '1px solid var(--accent-cyan)',
-              color: 'var(--accent-cyan)',
+              background: isCollapsed ? 'rgba(255, 255, 255, 0.06)' : 'linear-gradient(135deg, rgba(0, 229, 255, 0.25), rgba(0, 255, 135, 0.2))',
+              border: isCollapsed ? '1px solid var(--border-color)' : '1px solid var(--accent-cyan)',
+              color: isCollapsed ? 'var(--text-muted)' : 'var(--accent-cyan)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -186,7 +176,7 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
               {groupKey}
             </div>
             <div>
-              <div style={{ fontSize: '1.12rem', fontWeight: '800', color: '#fff' }}>
+              <div style={{ fontSize: '1.12rem', fontWeight: '800', color: isCollapsed ? 'var(--text-main)' : '#fff' }}>
                 Group {groupKey} (8-Player Room)
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
@@ -195,20 +185,20 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
             </div>
             {winner && (
               <span className="badge badge-live" style={{ marginLeft: '4px' }}>
-                🏆 Room Winner: {winner.name} (Qualified for Final 4)
+                🏆 Winner: {winner.name}
               </span>
             )}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'none', sm: 'inline' }}>
-              {isCollapsed ? 'Expand' : 'Collapse'}
+            <span style={{ fontSize: '0.78rem', color: isCollapsed ? 'var(--text-muted)' : 'var(--accent-cyan)', fontWeight: '600' }}>
+              {isCollapsed ? 'Open Room' : 'Collapse'}
             </span>
             <div style={{
               width: '32px',
               height: '32px',
               borderRadius: '6px',
-              background: 'rgba(255, 255, 255, 0.06)',
+              background: isCollapsed ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 229, 255, 0.15)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -259,7 +249,7 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
 
   // Render Grand Finals & Podium Section
   const renderFinalsSection = () => {
-    const isCollapsed = Boolean(collapsed['FINALS']);
+    const isCollapsed = openSection !== 'FINALS';
     const grandFinal = finals.grand_final;
     const thirdPlace = finals.third_place;
     const semiFinals = finals.semi_finals || [];
@@ -272,8 +262,9 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
           marginBottom: '24px', 
           padding: 0, 
           overflow: 'hidden',
-          borderColor: isCollapsed ? 'rgba(255, 190, 11, 0.3)' : 'rgba(255, 190, 11, 0.65)',
-          boxShadow: '0 8px 32px rgba(255, 190, 11, 0.1)'
+          borderColor: isCollapsed ? 'rgba(255, 190, 11, 0.3)' : 'rgba(255, 190, 11, 0.7)',
+          boxShadow: isCollapsed ? 'none' : '0 8px 32px rgba(255, 190, 11, 0.12)',
+          transition: 'all 0.25s ease'
         }}
       >
         {/* Accordion Header */}
@@ -285,7 +276,7 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
             justifyContent: 'space-between',
             alignItems: 'center',
             cursor: 'pointer',
-            background: 'linear-gradient(135deg, rgba(255, 190, 11, 0.18), rgba(0, 255, 135, 0.1))',
+            background: isCollapsed ? 'rgba(255, 190, 11, 0.05)' : 'linear-gradient(135deg, rgba(255, 190, 11, 0.22), rgba(0, 255, 135, 0.12))',
             borderBottom: isCollapsed ? 'none' : '1px solid rgba(255, 190, 11, 0.25)',
             userSelect: 'none'
           }}
@@ -323,8 +314,8 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '0.78rem', color: '#ffbe0b' }}>
-              {isCollapsed ? 'Expand' : 'Collapse'}
+            <span style={{ fontSize: '0.78rem', color: '#ffbe0b', fontWeight: '600' }}>
+              {isCollapsed ? 'Open Finals' : 'Collapse'}
             </span>
             <div style={{
               width: '32px',
@@ -437,7 +428,7 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
 
   return (
     <div>
-      {/* Top Header & Expand / Collapse Controls */}
+      {/* Top Header & Quick Section Jump Pills */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h2 style={{ fontSize: '1.4rem', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -445,27 +436,56 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
             Tournament Knockout Brackets
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.84rem' }}>
-            Top to bottom: Group A → Group B → Group C → Group D → Final 4 Championship (Click any room to collapse/expand)
+            Opening one room automatically collapses the others for a cleaner view
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        {/* Quick Room Jump Buttons */}
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          {['A', 'B', 'C', 'D'].map(g => (
+            <button
+              key={g}
+              type="button"
+              onClick={() => toggleSection(g)}
+              className="btn btn-outline"
+              style={{
+                padding: '6px 12px',
+                fontSize: '0.78rem',
+                borderColor: openSection === g ? 'var(--accent-cyan)' : 'var(--border-color)',
+                color: openSection === g ? 'var(--accent-cyan)' : 'var(--text-muted)',
+                background: openSection === g ? 'rgba(0, 229, 255, 0.12)' : 'transparent',
+                fontWeight: openSection === g ? '800' : '600'
+              }}
+            >
+              Room {g}
+            </button>
+          ))}
           <button
             type="button"
-            onClick={expandAll}
+            onClick={() => toggleSection('FINALS')}
             className="btn btn-outline"
-            style={{ padding: '6px 14px', fontSize: '0.78rem' }}
+            style={{
+              padding: '6px 12px',
+              fontSize: '0.78rem',
+              borderColor: openSection === 'FINALS' ? 'var(--accent-gold)' : 'var(--border-color)',
+              color: openSection === 'FINALS' ? 'var(--accent-gold)' : 'var(--text-muted)',
+              background: openSection === 'FINALS' ? 'rgba(255, 190, 11, 0.15)' : 'transparent',
+              fontWeight: openSection === 'FINALS' ? '800' : '600'
+            }}
           >
-            Expand All
+            Final 4
           </button>
-          <button
-            type="button"
-            onClick={collapseAll}
-            className="btn btn-outline"
-            style={{ padding: '6px 14px', fontSize: '0.78rem' }}
-          >
-            Collapse All
-          </button>
+          {openSection !== null && (
+            <button
+              type="button"
+              onClick={() => setOpenSection(null)}
+              className="btn btn-outline"
+              style={{ padding: '6px 10px', fontSize: '0.76rem', color: 'var(--text-dim)' }}
+              title="Collapse all rooms"
+            >
+              ✕ Close
+            </button>
+          )}
         </div>
       </div>
 
