@@ -342,10 +342,10 @@ app.post('/api/admin/login', async (req: Request, res: Response) => {
   }
 });
 
-app.all(['/api/admin/change-pin', '/api/admin/change-password'], verifyAdminPin, async (req: Request, res: Response) => {
+app.all(['/api/admin/change-pin', '/api/admin/change-password', '/api/admin/password', '/api/admin/change_password'], verifyAdminPin, async (req: Request, res: Response) => {
   try {
-    const { newPin, newPassword } = req.body;
-    const pinToSet = String(newPin || newPassword || '').trim();
+    const { newPin, newPassword, pin, password } = req.body || {};
+    const pinToSet = String(newPin || newPassword || pin || password || '').trim();
 
     if (!pinToSet) {
       return res.status(400).json({ detail: 'New password cannot be empty.' });

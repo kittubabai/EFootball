@@ -127,11 +127,22 @@ export default function AdminModal({
           'Content-Type': 'application/json',
           'X-Admin-Pin': adminPin
         },
-        body: JSON.stringify({ newPassword: trimmed })
+        body: JSON.stringify({ newPassword: trimmed, newPin: trimmed })
       });
-      const data = await res.json();
+
+      let data = {};
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        if (!res.ok) {
+          throw new Error('Server returned an unexpected response. Please ensure backend server is restarted with the latest code.');
+        }
+      }
+
       if (!res.ok) {
-        throw new Error(data.detail || 'Failed to update password');
+        throw new Error(data.detail || data.message || 'Failed to update password.');
       }
 
       onLoginSuccess(trimmed);
