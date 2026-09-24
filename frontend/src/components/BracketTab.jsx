@@ -1,8 +1,27 @@
 import React, { useState } from 'react';
-import { Trophy, Award, Edit3, HelpCircle, Users, Medal } from 'lucide-react';
+import { Trophy, Award, Edit3, HelpCircle, Users, Medal, ChevronDown, ChevronUp, ChevronsUpDown, Sparkles } from 'lucide-react';
 
 export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
-  const [selectedView, setSelectedView] = useState('FINALS'); // 'A' | 'B' | 'C' | 'D' | 'FINALS'
+  // Collapsible state for each section: A, B, C, D, FINALS (false = expanded, true = collapsed)
+  const [collapsed, setCollapsed] = useState({
+    A: false,
+    B: false,
+    C: false,
+    D: false,
+    FINALS: false
+  });
+
+  const toggleSection = (key) => {
+    setCollapsed(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const expandAll = () => {
+    setCollapsed({ A: false, B: false, C: false, D: false, FINALS: false });
+  };
+
+  const collapseAll = () => {
+    setCollapsed({ A: true, B: true, C: true, D: true, FINALS: true });
+  };
 
   const status = bracketData?.tournament_status;
   const groups = bracketData?.groups || {};
@@ -114,215 +133,348 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
     );
   };
 
-  const currentGroup = groups[selectedView];
+  // Render individual 8-player group section (A, B, C, D)
+  const renderGroupSection = (groupKey) => {
+    const group = groups[groupKey];
+    if (!group) return null;
+    const isCollapsed = Boolean(collapsed[groupKey]);
+    const winner = group.winner;
+    const qfMatches = group.matches?.filter(m => m.round_index === 1) || [];
+    const sfMatches = group.matches?.filter(m => m.round_index === 2) || [];
+    const gfMatches = group.matches?.filter(m => m.round_index === 3) || [];
+
+    return (
+      <div 
+        key={groupKey} 
+        className="glass-card"
+        style={{ 
+          marginBottom: '20px', 
+          padding: 0, 
+          overflow: 'hidden',
+          borderColor: isCollapsed ? 'var(--border-color)' : 'rgba(0, 229, 255, 0.35)',
+          transition: 'border-color 0.2s ease'
+        }}
+      >
+        {/* Collapsible Accordion Header */}
+        <div 
+          onClick={() => toggleSection(groupKey)}
+          style={{
+            padding: '16px 20px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            cursor: 'pointer',
+            background: isCollapsed ? 'rgba(255, 255, 255, 0.02)' : 'linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(0, 255, 135, 0.04))',
+            borderBottom: isCollapsed ? 'none' : '1px solid rgba(255, 255, 255, 0.08)',
+            userSelect: 'none'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+            <div style={{
+              width: '38px',
+              height: '38px',
+              borderRadius: '8px',
+              background: 'linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 255, 135, 0.15))',
+              border: '1px solid var(--accent-cyan)',
+              color: 'var(--accent-cyan)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: '900',
+              fontSize: '1.15rem'
+            }}>
+              {groupKey}
+            </div>
+            <div>
+              <div style={{ fontSize: '1.12rem', fontWeight: '800', color: '#fff' }}>
+                Group {groupKey} (8-Player Room)
+              </div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                4 Quarter-Finals → 2 Semi-Finals → 1 Group Final (Winner advances to Final 4)
+              </div>
+            </div>
+            {winner && (
+              <span className="badge badge-live" style={{ marginLeft: '4px' }}>
+                🏆 Room Winner: {winner.name} (Qualified for Final 4)
+              </span>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'none', sm: 'inline' }}>
+              {isCollapsed ? 'Expand' : 'Collapse'}
+            </span>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '6px',
+              background: 'rgba(255, 255, 255, 0.06)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: isCollapsed ? 'var(--text-muted)' : 'var(--accent-cyan)'
+            }}>
+              {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+            </div>
+          </div>
+        </div>
+
+        {/* Collapsible Content Body */}
+        {!isCollapsed && (
+          <div style={{ padding: '20px' }}>
+            <div className="bracket-wrapper">
+              <div className="bracket-container">
+                {/* Round 1: Quarter-Finals (4 matches) */}
+                <div className="bracket-round">
+                  <div className="round-header">Quarter-Finals (4 Matches)</div>
+                  <div className="round-matches">
+                    {qfMatches.map(m => renderMatchCard(m))}
+                  </div>
+                </div>
+
+                {/* Round 2: Semi-Finals (2 matches) */}
+                <div className="bracket-round">
+                  <div className="round-header">Semi-Finals (2 Matches)</div>
+                  <div className="round-matches">
+                    {sfMatches.map(m => renderMatchCard(m))}
+                  </div>
+                </div>
+
+                {/* Round 3: Group Final (1 match) */}
+                <div className="bracket-round">
+                  <div className="round-header" style={{ borderColor: 'rgba(0, 255, 135, 0.4)' }}>
+                    Group Final (To Final 4)
+                  </div>
+                  <div className="round-matches">
+                    {gfMatches.map(m => renderMatchCard(m))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Render Grand Finals & Podium Section
+  const renderFinalsSection = () => {
+    const isCollapsed = Boolean(collapsed['FINALS']);
+    const grandFinal = finals.grand_final;
+    const thirdPlace = finals.third_place;
+    const semiFinals = finals.semi_finals || [];
+
+    return (
+      <div 
+        key="FINALS" 
+        className="glass-card"
+        style={{ 
+          marginBottom: '24px', 
+          padding: 0, 
+          overflow: 'hidden',
+          borderColor: isCollapsed ? 'rgba(255, 190, 11, 0.3)' : 'rgba(255, 190, 11, 0.65)',
+          boxShadow: '0 8px 32px rgba(255, 190, 11, 0.1)'
+        }}
+      >
+        {/* Accordion Header */}
+        <div 
+          onClick={() => toggleSection('FINALS')}
+          style={{
+            padding: '18px 20px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            cursor: 'pointer',
+            background: 'linear-gradient(135deg, rgba(255, 190, 11, 0.18), rgba(0, 255, 135, 0.1))',
+            borderBottom: isCollapsed ? 'none' : '1px solid rgba(255, 190, 11, 0.25)',
+            userSelect: 'none'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+            <div style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, rgba(255, 190, 11, 0.35), rgba(255, 158, 0, 0.25))',
+              border: '1px solid #ffbe0b',
+              color: '#ffbe0b',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <Trophy size={22} />
+            </div>
+            <div>
+              <div style={{ fontSize: '1.2rem', fontWeight: '900', color: '#ffbe0b', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span>Final 4 Championship Room</span>
+                <span style={{ fontSize: '0.74rem', background: 'rgba(255, 190, 11, 0.2)', border: '1px solid #ffbe0b', padding: '2px 8px', borderRadius: '4px', color: '#fff', fontWeight: '700' }}>
+                  Decides 1st, 2nd, 3rd Podium
+                </span>
+              </div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                Winners of Group A, B, C, & D clash for the Championship & Cash Prizes
+              </div>
+            </div>
+            {podium.first && (
+              <span className="badge badge-gold" style={{ marginLeft: '4px' }}>
+                🥇 Champion: {podium.first.name}
+              </span>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '0.78rem', color: '#ffbe0b' }}>
+              {isCollapsed ? 'Expand' : 'Collapse'}
+            </span>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '6px',
+              background: 'rgba(255, 190, 11, 0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ffbe0b'
+            }}>
+              {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+            </div>
+          </div>
+        </div>
+
+        {/* Accordion Body */}
+        {!isCollapsed && (
+          <div style={{ padding: '20px' }}>
+            {/* Podium Banner if decided */}
+            {(podium.first || podium.second || podium.third) && (
+              <div style={{ 
+                marginBottom: '20px', 
+                background: 'linear-gradient(135deg, rgba(255, 190, 11, 0.08), rgba(0, 255, 135, 0.08))',
+                border: '1px solid rgba(255, 190, 11, 0.3)',
+                borderRadius: '12px',
+                padding: '16px'
+              }}>
+                <h4 style={{ textAlign: 'center', fontSize: '1.15rem', fontWeight: '900', color: '#ffbe0b', marginBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  <Trophy size={20} /> TOURNAMENT PODIUM POSITIONS
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                  {/* 1st Place */}
+                  <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255, 190, 11, 0.4)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.6rem', marginBottom: '2px' }}>🥇</div>
+                    <div style={{ color: '#ffbe0b', fontWeight: '800', fontSize: '0.76rem', textTransform: 'uppercase' }}>1st Place (Champion)</div>
+                    <div style={{ display: 'inline-block', background: 'rgba(255, 190, 11, 0.15)', color: '#ffbe0b', fontWeight: '800', fontSize: '0.72rem', padding: '2px 6px', borderRadius: '4px', margin: '3px 0' }}>
+                      ₹500 Cash (+₹300 Group = ₹800)
+                    </div>
+                    <div style={{ fontSize: '1.05rem', fontWeight: '800', marginTop: '3px' }}>{podium.first ? podium.first.name : 'TBD'}</div>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{podium.first?.team_name || ''}</div>
+                  </div>
+
+                  {/* 2nd Place */}
+                  <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(192, 192, 192, 0.4)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.6rem', marginBottom: '2px' }}>🥈</div>
+                    <div style={{ color: '#c0c0c0', fontWeight: '800', fontSize: '0.76rem', textTransform: 'uppercase' }}>2nd Place (Runner-up)</div>
+                    <div style={{ display: 'inline-block', background: 'rgba(192, 192, 192, 0.15)', color: '#c0c0c0', fontWeight: '800', fontSize: '0.72rem', padding: '2px 6px', borderRadius: '4px', margin: '3px 0' }}>
+                      ₹300 Cash (+₹300 Group = ₹600)
+                    </div>
+                    <div style={{ fontSize: '1.05rem', fontWeight: '800', marginTop: '3px' }}>{podium.second ? podium.second.name : 'TBD'}</div>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{podium.second?.team_name || ''}</div>
+                  </div>
+
+                  {/* 3rd Place */}
+                  <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(205, 127, 50, 0.4)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.6rem', marginBottom: '2px' }}>🥉</div>
+                    <div style={{ color: '#cd7f32', fontWeight: '800', fontSize: '0.76rem', textTransform: 'uppercase' }}>3rd Place Winner</div>
+                    <div style={{ display: 'inline-block', background: 'rgba(205, 127, 50, 0.15)', color: '#cd7f32', fontWeight: '800', fontSize: '0.72rem', padding: '2px 6px', borderRadius: '4px', margin: '3px 0' }}>
+                      ₹200 Cash (+₹300 Group = ₹500)
+                    </div>
+                    <div style={{ fontSize: '1.05rem', fontWeight: '800', marginTop: '3px' }}>{podium.third ? podium.third.name : 'TBD'}</div>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{podium.third?.team_name || ''}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Final 4 Brackets Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+              {/* Semi-Finals Column */}
+              <div>
+                <div className="round-header" style={{ borderColor: 'rgba(0, 229, 255, 0.4)', color: 'var(--accent-cyan)' }}>
+                  Final 4 Semi-Finals (2 Matches)
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {semiFinals.map(m => renderMatchCard(m))}
+                </div>
+              </div>
+
+              {/* Decider Matches Column */}
+              <div>
+                <div className="round-header" style={{ borderColor: 'rgba(255, 190, 11, 0.4)', color: '#ffbe0b' }}>
+                  Podium Decider Matches
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {/* Grand Final */}
+                  <div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#ffbe0b', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Medal size={16} /> 🥇 Grand Final (Decides 1st & 2nd Place)
+                    </div>
+                    {renderMatchCard(grandFinal)}
+                  </div>
+
+                  {/* 3rd Place Match */}
+                  <div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#cd7f32', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Medal size={16} /> 🥉 3rd Place Playoff (Decides 3rd Position)
+                    </div>
+                    {renderMatchCard(thirdPlace)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div>
-      {/* Podium Banner if Champions have been decided */}
-      {(podium.first || podium.second || podium.third) && (
-        <div className="glass-card" style={{ 
-          marginBottom: '24px', 
-          background: 'linear-gradient(135deg, rgba(255, 190, 11, 0.12), rgba(0, 255, 135, 0.12))',
-          borderColor: 'rgba(255, 190, 11, 0.35)',
-          padding: '24px'
-        }}>
-          <h3 style={{ textAlign: 'center', fontSize: '1.35rem', fontWeight: '900', color: '#ffbe0b', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-            <Trophy size={26} /> TOURNAMENT PODIUM (1ST, 2ND, 3RD PLACE)
-          </h3>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-            {/* 1st Place */}
-            <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255, 190, 11, 0.4)', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '2rem', marginBottom: '4px' }}>🥇</div>
-              <div style={{ color: '#ffbe0b', fontWeight: '800', fontSize: '0.8rem', textTransform: 'uppercase' }}>1st Place (Champion)</div>
-              <div style={{ display: 'inline-block', background: 'rgba(255, 190, 11, 0.15)', color: '#ffbe0b', fontWeight: '800', fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', margin: '4px 0' }}>
-                ₹500 Cash (+₹300 Group = ₹800)
-              </div>
-              <div style={{ fontSize: '1.2rem', fontWeight: '800', marginTop: '4px' }}>{podium.first ? podium.first.name : 'TBD'}</div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{podium.first?.team_name || ''}</div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--accent-cyan)', fontFamily: 'monospace', marginTop: '4px' }}>{podium.first?.efootball_id || ''}</div>
-            </div>
-
-            {/* 2nd Place */}
-            <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(192, 192, 192, 0.4)', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '2rem', marginBottom: '4px' }}>🥈</div>
-              <div style={{ color: '#c0c0c0', fontWeight: '800', fontSize: '0.8rem', textTransform: 'uppercase' }}>2nd Place (Runner-up)</div>
-              <div style={{ display: 'inline-block', background: 'rgba(192, 192, 192, 0.15)', color: '#c0c0c0', fontWeight: '800', fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', margin: '4px 0' }}>
-                ₹300 Cash (+₹300 Group = ₹600)
-              </div>
-              <div style={{ fontSize: '1.2rem', fontWeight: '800', marginTop: '4px' }}>{podium.second ? podium.second.name : 'TBD'}</div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{podium.second?.team_name || ''}</div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--accent-cyan)', fontFamily: 'monospace', marginTop: '4px' }}>{podium.second?.efootball_id || ''}</div>
-            </div>
-
-            {/* 3rd Place */}
-            <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(205, 127, 50, 0.4)', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '2rem', marginBottom: '4px' }}>🥉</div>
-              <div style={{ color: '#cd7f32', fontWeight: '800', fontSize: '0.8rem', textTransform: 'uppercase' }}>3rd Place Winner</div>
-              <div style={{ display: 'inline-block', background: 'rgba(205, 127, 50, 0.15)', color: '#cd7f32', fontWeight: '800', fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', margin: '4px 0' }}>
-                ₹200 Cash (+₹300 Group = ₹500)
-              </div>
-              <div style={{ fontSize: '1.2rem', fontWeight: '800', marginTop: '4px' }}>{podium.third ? podium.third.name : 'TBD'}</div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{podium.third?.team_name || ''}</div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--accent-cyan)', fontFamily: 'monospace', marginTop: '4px' }}>{podium.third?.efootball_id || ''}</div>
-            </div>
-          </div>
+      {/* Top Header & Expand / Collapse Controls */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Trophy size={22} color="var(--accent-gold)" />
+            Tournament Knockout Brackets
+          </h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.84rem' }}>
+            Top to bottom: Group A → Group B → Group C → Group D → Final 4 Championship (Click any room to collapse/expand)
+          </p>
         </div>
-      )}
 
-      {/* Group Room Switcher Tabs */}
-      <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '20px', paddingBottom: '4px' }}>
-        <button
-          onClick={() => setSelectedView('FINALS')}
-          style={{
-            background: selectedView === 'FINALS' ? 'linear-gradient(135deg, rgba(255, 190, 11, 0.25), rgba(0, 255, 135, 0.25))' : 'rgba(255,255,255,0.05)',
-            border: selectedView === 'FINALS' ? '1px solid #ffbe0b' : '1px solid var(--border-color)',
-            color: selectedView === 'FINALS' ? '#ffbe0b' : 'var(--text-muted)',
-            padding: '10px 18px',
-            borderRadius: '10px',
-            fontWeight: '800',
-            fontSize: '0.9rem',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          <Trophy size={16} />
-          <span>Final 4 Championship Room</span>
-        </button>
-
-        {['A', 'B', 'C', 'D'].map(g => (
+        <div style={{ display: 'flex', gap: '8px' }}>
           <button
-            key={g}
-            onClick={() => setSelectedView(g)}
-            style={{
-              background: selectedView === g ? 'linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 255, 135, 0.2))' : 'rgba(255,255,255,0.05)',
-              border: selectedView === g ? '1px solid var(--accent-cyan)' : '1px solid var(--border-color)',
-              color: selectedView === g ? '#fff' : 'var(--text-muted)',
-              padding: '10px 18px',
-              borderRadius: '10px',
-              fontWeight: '700',
-              fontSize: '0.9rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              whiteSpace: 'nowrap'
-            }}
+            type="button"
+            onClick={expandAll}
+            className="btn btn-outline"
+            style={{ padding: '6px 14px', fontSize: '0.78rem' }}
           >
-            <Users size={15} />
-            <span>Room {g} (8 Players)</span>
-            {groups[g]?.winner && (
-              <span style={{ fontSize: '0.72rem', color: 'var(--accent-green)', fontWeight: '800', marginLeft: '4px' }}>
-                ✓ {groups[g].winner.name}
-              </span>
-            )}
+            Expand All
           </button>
-        ))}
+          <button
+            type="button"
+            onClick={collapseAll}
+            className="btn btn-outline"
+            style={{ padding: '6px 14px', fontSize: '0.78rem' }}
+          >
+            Collapse All
+          </button>
+        </div>
       </div>
 
-      {/* Selected View Rendering */}
-      {selectedView === 'FINALS' ? (
-        /* Final 4 Championship View */
-        <div>
-          <div style={{ marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Trophy size={20} color="#ffbe0b" />
-              Final 4 Championship Room (Decides 1st, 2nd, and 3rd Position)
-            </h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Winners of Group A, B, C, and D meet here on 18th October to battle for the championship podium!
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-            {/* Semi-Finals Column */}
-            <div>
-              <div className="round-header" style={{ borderColor: 'rgba(0, 229, 255, 0.4)', color: 'var(--accent-cyan)' }}>
-                Final 4 Semi-Finals
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {finals.semi_finals?.map(m => renderMatchCard(m))}
-              </div>
-            </div>
-
-            {/* Decider Matches Column */}
-            <div>
-              <div className="round-header" style={{ borderColor: 'rgba(255, 190, 11, 0.4)', color: '#ffbe0b' }}>
-                Podium Decider Matches
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {/* Grand Final */}
-                <div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#ffbe0b', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Medal size={16} /> 🥇 Grand Final (Decides 1st & 2nd Place)
-                  </div>
-                  {renderMatchCard(finals.grand_final)}
-                </div>
-
-                {/* 3rd Place Match */}
-                <div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#cd7f32', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Medal size={16} /> 🥉 3rd Place Playoff (Decides 3rd Position)
-                  </div>
-                  {renderMatchCard(finals.third_place)}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* Individual 8-Player Group Room View */
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-            <div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: '800' }}>
-                {currentGroup?.group_name || `Group ${selectedView}`}
-              </h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                8 Players Room • Winner advances to the Final 4 Championship!
-              </p>
-            </div>
-            {currentGroup?.winner && (
-              <div className="badge badge-live">
-                🏆 Group Winner: {currentGroup.winner.name} (Qualified for Final 4)
-              </div>
-            )}
-          </div>
-
-          <div className="bracket-wrapper">
-            <div className="bracket-container">
-              {/* Round 1: Quarter-Finals (4 matches) */}
-              <div className="bracket-round">
-                <div className="round-header">Quarter-Finals (4 Matches)</div>
-                <div className="round-matches">
-                  {currentGroup?.matches?.filter(m => m.round_index === 1).map(m => renderMatchCard(m))}
-                </div>
-              </div>
-
-              {/* Round 2: Semi-Finals (2 matches) */}
-              <div className="bracket-round">
-                <div className="round-header">Semi-Finals (2 Matches)</div>
-                <div className="round-matches">
-                  {currentGroup?.matches?.filter(m => m.round_index === 2).map(m => renderMatchCard(m))}
-                </div>
-              </div>
-
-              {/* Round 3: Group Final (1 match) */}
-              <div className="bracket-round">
-                <div className="round-header" style={{ borderColor: 'rgba(0, 255, 135, 0.4)' }}>
-                  Group Final (To Final 4)
-                </div>
-                <div className="round-matches">
-                  {currentGroup?.matches?.filter(m => m.round_index === 3).map(m => renderMatchCard(m))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Top-to-Bottom Collapsible Rooms & Finals */}
+      {renderGroupSection('A')}
+      {renderGroupSection('B')}
+      {renderGroupSection('C')}
+      {renderGroupSection('D')}
+      {renderFinalsSection()}
     </div>
   );
 }
