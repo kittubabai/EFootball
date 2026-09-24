@@ -727,42 +727,62 @@ export default function AdminModal({
                       No registered players yet.
                     </div>
                   ) : (
-                    players.map(p => (
-                      <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(8,12,20,0.7)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', flexWrap: 'wrap', gap: '8px' }}>
-                        <div>
-                          <strong style={{ fontSize: '0.88rem' }}>{p.name}</strong>
-                          <span style={{ fontSize: '0.74rem', color: 'var(--accent-cyan)', marginLeft: '8px' }}>({p.efootball_id})</span>
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                            WA: <strong>{p.whatsapp}</strong> • UTR: <code style={{ color: 'var(--accent-gold)' }}>{p.utr_number || 'None'}</code>
-                          </div>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          {p.payment_screenshot && (
-                            <button 
-                              onClick={() => setViewScreenshot(p.payment_screenshot)}
-                              className="btn btn-outline"
-                              style={{ padding: '3px 8px', fontSize: '0.72rem', borderColor: 'rgba(0,229,255,0.4)', color: 'var(--accent-cyan)' }}
-                              title="View Payment Screenshot"
-                            >
-                              <Eye size={12} /> Receipt
-                            </button>
-                          )}
-
-                          {p.payment_status === 'verified' ? (
-                            <span style={{ fontSize: '0.72rem', background: 'rgba(0,255,135,0.12)', color: 'var(--accent-green)', padding: '3px 8px', borderRadius: '4px', fontWeight: '700' }}>
-                              ✓ Verified
+                    players.map(p => {
+                      const isV = p.payment_status === 'verified';
+                      return (
+                        <div 
+                          key={p.id} 
+                          style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center', 
+                            background: isV ? 'linear-gradient(135deg, rgba(0, 255, 135, 0.08), rgba(8, 20, 15, 0.75))' : 'rgba(8,12,20,0.7)', 
+                            padding: '10px 12px', 
+                            borderRadius: '8px', 
+                            border: isV ? '1px solid rgba(0, 255, 135, 0.4)' : '1px solid var(--border-color)', 
+                            boxShadow: isV ? '0 2px 10px rgba(0, 255, 135, 0.1)' : 'none',
+                            flexWrap: 'wrap', 
+                            gap: '8px' 
+                          }}
+                        >
+                          <div>
+                            <strong style={{ fontSize: '0.88rem', color: isV ? '#00ff87' : '#fff' }}>
+                              {p.name}
+                            </strong>
+                            <span style={{ fontSize: '0.74rem', color: isV ? '#00ff87' : 'var(--accent-cyan)', marginLeft: '8px' }}>
+                              ({p.efootball_id})
                             </span>
-                          ) : (
-                            <button 
-                              onClick={() => handleVerifyPayment(p.id, 'verified')}
-                              className="btn btn-primary"
-                              style={{ padding: '3px 8px', fontSize: '0.72rem' }}
-                              title="Verify ₹100 Payment"
-                            >
-                              <Check size={12} /> Verify ₹100
-                            </button>
-                          )}
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                              WA: <strong>{p.whatsapp}</strong> • UTR: <code style={{ color: isV ? '#00ff87' : 'var(--accent-gold)' }}>{p.utr_number || 'None'}</code>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            {p.payment_screenshot && (
+                              <button 
+                                onClick={() => setViewScreenshot(p.payment_screenshot)}
+                                className="btn btn-outline"
+                                style={{ padding: '3px 8px', fontSize: '0.72rem', borderColor: 'rgba(0,229,255,0.4)', color: 'var(--accent-cyan)' }}
+                                title="View Payment Screenshot"
+                              >
+                                <Eye size={12} /> Receipt
+                              </button>
+                            )}
+
+                            {isV ? (
+                              <span style={{ fontSize: '0.72rem', background: 'rgba(0,255,135,0.2)', border: '1px solid rgba(0,255,135,0.45)', color: '#00ff87', padding: '3px 8px', borderRadius: '4px', fontWeight: '800' }}>
+                                ✓ Verified Paid
+                              </span>
+                            ) : (
+                              <button 
+                                onClick={() => handleVerifyPayment(p.id, 'verified')}
+                                className="btn btn-primary"
+                                style={{ padding: '3px 8px', fontSize: '0.72rem' }}
+                                title="Verify ₹100 Payment"
+                              >
+                                <Check size={12} /> Verify ₹100
+                              </button>
+                            )}
 
                           <button 
                             onClick={() => setEditPlayerForm({
@@ -788,7 +808,8 @@ export default function AdminModal({
                           </button>
                         </div>
                       </div>
-                    ))
+                    );
+                  })
                   )}
                 </div>
               </div>

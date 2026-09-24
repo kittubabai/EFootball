@@ -298,37 +298,50 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
                   {players.length === 0 ? 'No players registered yet. Be the first to join!' : 'No matching players found.'}
                 </div>
               ) : (
-                filteredPlayers.map((player, index) => (
-                  <div key={player.id} className="player-item-card">
-                    <div className="player-info">
-                      <div className="player-num">#{index + 1}</div>
-                      <div>
-                        <div className="player-name">{player.name}</div>
-                        <div className="player-team">{player.team_name || 'Dream Team'}</div>
-                        {player.group_assigned && (
-                          <span style={{ fontSize: '0.72rem', color: 'var(--accent-green)', fontWeight: '700' }}>
-                            Room: Group {player.group_assigned}
-                          </span>
-                        )}
+                filteredPlayers.map((player, index) => {
+                  const isVerified = player.payment_status === 'verified';
+                  return (
+                    <div 
+                      key={player.id} 
+                      className={`player-item-card ${isVerified ? 'verified-paid' : ''}`}
+                    >
+                      <div className="player-info">
+                        <div className={`player-num ${isVerified ? 'verified' : ''}`}>
+                          {isVerified ? '✓' : `#${index + 1}`}
+                        </div>
+                        <div>
+                          <div className={`player-name ${isVerified ? 'verified' : ''}`}>
+                            {player.name}
+                            {isVerified && <span className="verified-check-badge">PAID</span>}
+                          </div>
+                          <div className="player-team">{player.team_name || 'Dream Team'}</div>
+                          {player.group_assigned && (
+                            <span style={{ fontSize: '0.72rem', color: 'var(--accent-green)', fontWeight: '700' }}>
+                              Room: Group {player.group_assigned}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
 
-                    <div style={{ textAlign: 'right' }}>
-                      <div className="player-id-badge">{player.efootball_id}</div>
-                      <div style={{ marginTop: '4px' }}>
-                        {player.payment_status === 'verified' ? (
-                          <span style={{ fontSize: '0.72rem', color: 'var(--accent-green)', fontWeight: '700' }}>
-                            ✓ Paid & Admitted
-                          </span>
-                        ) : (
-                          <span style={{ fontSize: '0.72rem', color: 'var(--accent-gold)', fontWeight: '600' }}>
-                            ⏳ Payment Pending
-                          </span>
-                        )}
+                      <div style={{ textAlign: 'right' }}>
+                        <div className={`player-id-badge ${isVerified ? 'verified' : ''}`}>
+                          {player.efootball_id}
+                        </div>
+                        <div style={{ marginTop: '5px' }}>
+                          {isVerified ? (
+                            <span className="player-status-pill verified">
+                              ✓ Paid & Confirmed
+                            </span>
+                          ) : (
+                            <span className="player-status-pill pending">
+                              ⏳ Payment Pending
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
