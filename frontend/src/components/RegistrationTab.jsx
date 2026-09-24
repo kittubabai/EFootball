@@ -84,22 +84,68 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
               </span>
             </div>
 
+            {/* Payment Reminder Notice */}
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(229, 185, 76, 0.12), rgba(255, 158, 0, 0.08))',
+              border: '1px solid rgba(229, 185, 76, 0.35)',
+              borderRadius: '10px',
+              padding: '10px 14px',
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '10px',
+              flexWrap: 'wrap'
+            }}>
+              <div style={{ fontSize: '0.84rem', color: 'var(--text-main)', lineHeight: 1.4 }}>
+                ⚡ <strong style={{ color: 'var(--accent-gold)' }}>Important:</strong> Registering alone does not lock your slot. Please complete the ₹100 entry fee to confirm your seat among the 32 slots!
+              </div>
+              {onSwitchToPayment && (
+                <button
+                  type="button"
+                  onClick={onSwitchToPayment}
+                  className="btn btn-outline"
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '0.78rem',
+                    borderColor: 'rgba(229, 185, 76, 0.5)',
+                    color: 'var(--accent-gold)',
+                    fontWeight: '700'
+                  }}
+                >
+                  Pay Fee Now →
+                </button>
+              )}
+            </div>
+
             {/* Progress Bar */}
             <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.08)', borderRadius: '999px', overflow: 'hidden', marginBottom: '20px' }}>
               <div 
                 style={{ 
                   width: `${percentage}%`, 
                   height: '100%', 
-                  background: 'linear-gradient(to right, #00ff87, #00e5ff)',
+                  background: 'linear-gradient(to right, #ffd166, #ff9e00)',
                   transition: 'width 0.4s ease'
                 }} 
               />
             </div>
 
             {successMsg && (
-              <div className="alert alert-success">
-                <CheckCircle2 size={18} style={{ flexShrink: 0 }} />
-                <div>{successMsg}</div>
+              <div className="alert alert-success" style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                  <CheckCircle2 size={20} style={{ flexShrink: 0, color: 'var(--accent-gold)' }} />
+                  <div style={{ fontWeight: '600', fontSize: '0.92rem' }}>{successMsg}</div>
+                </div>
+                {onSwitchToPayment && (
+                  <button
+                    type="button"
+                    onClick={onSwitchToPayment}
+                    className="btn btn-primary"
+                    style={{ alignSelf: 'flex-start', padding: '8px 18px', fontSize: '0.84rem' }}
+                  >
+                    <span>👉 Proceed to Pay Entry Fee (₹100)</span>
+                  </button>
+                )}
               </div>
             )}
 
