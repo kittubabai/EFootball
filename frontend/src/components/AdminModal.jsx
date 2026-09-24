@@ -333,7 +333,7 @@ export default function AdminModal({
 
     ctx.font = 'italic bold 20px cursive, sans-serif';
     ctx.fillStyle = '#00ff87';
-    ctx.fillText('Pantihal Committee', 250, 675);
+    ctx.fillText('Jadupur Amra Sobai', 250, 675);
 
     ctx.font = '15px Inter, sans-serif';
     ctx.fillStyle = '#94a3b8';
@@ -361,7 +361,7 @@ export default function AdminModal({
 
     ctx.font = 'italic bold 20px cursive, sans-serif';
     ctx.fillStyle = '#00e5ff';
-    ctx.fillText('Match Operations', w - 250, 675);
+    ctx.fillText('Sayantan Chakraborty', w - 250, 675);
 
     ctx.font = '15px Inter, sans-serif';
     ctx.fillStyle = '#94a3b8';
