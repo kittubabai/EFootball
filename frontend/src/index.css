@@ -274,15 +274,37 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .brand-logo-badge {
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #ffd166, #ff9e00);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(229, 185, 76, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #040810;
-  box-shadow: 0 0 22px var(--accent-gold-glow);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.15);
+  overflow: hidden;
+  padding: 4px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.brand-logo-badge:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 24px var(--accent-cyan-glow);
+  transform: translateY(-1px);
+}
+
+.brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: invert(1) brightness(1.2);
+  transition: transform 0.2s ease;
+}
+
+.brand-logo-badge:hover .brand-logo-img {
+  transform: scale(1.08);
 }
 
 .brand-title {

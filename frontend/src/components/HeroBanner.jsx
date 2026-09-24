@@ -52,7 +52,11 @@ export default function HeroBanner({ tournamentStatus, playersCount, onOpenPrize
       {/* Center: Tournament Information */}
       <div className="hero-center-content">
         <div className="hero-badge-pill">
-          <Flame size={14} color="var(--accent-gold)" />
+          <img 
+            src="/efootball_logo.jpg" 
+            alt="eFootball" 
+            style={{ width: '16px', height: '16px', objectFit: 'contain', filter: 'invert(1)' }} 
+          />
           <span>Pantihal eFootball Dream Team Cup</span>
         </div>
 

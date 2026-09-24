@@ -38,11 +38,15 @@ export default function Navbar({ tournamentStatus, isAdmin, onOpenAdmin, onToggl
           <Menu size={22} />
         </button>
 
-        <div className="brand-logo-badge">
-          <Trophy size={26} strokeWidth={2.5} />
+        <div className="brand-logo-badge" title="eFootball Mobile Official Cup">
+          <img 
+            src="/efootball_logo.jpg" 
+            alt="eFootball Logo" 
+            className="brand-logo-img"
+          />
         </div>
         <div>
-          <div className="brand-sub">eFootball Mobile 2026</div>
+          <div className="brand-sub">eFootball™ Mobile 2026</div>
           <h1 className="brand-title">{tournamentStatus?.title || 'Pantihal eFootball Cup'}</h1>
         </div>
       </div>

@@ -133,7 +133,14 @@ export default function App() {
         {/* Left Navigation Sidebar */}
         <aside className={`left-sidebar ${isSidebarOpen ? 'open' : ''}`}>
           <div className="sidebar-header">
-            <span className="sidebar-title">Tournament Navigation</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img 
+                src="/efootball_logo.jpg" 
+                alt="eFootball" 
+                style={{ width: '20px', height: '20px', objectFit: 'contain', filter: 'invert(1)' }} 
+              />
+              <span className="sidebar-title">eFootball Cup</span>
+            </div>
             <button 
               type="button" 
               className="sidebar-close-btn" 
