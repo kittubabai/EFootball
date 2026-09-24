@@ -301,37 +301,27 @@ export default function PaymentTab({ tournamentStatus, players, onPaymentSubmitt
 
           <div style={{ marginTop: '20px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px' }}>
             <div style={{ fontSize: '0.82rem', fontWeight: '800', color: 'var(--accent-gold)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <PhoneCall size={14} /> Need Help or Instant Verification? Contact Organizers:
+              <PhoneCall size={14} /> Need Help with Payment? Contact Organizers:
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '8px' }}>
-              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontSize: '0.84rem', fontWeight: '700', color: '#fff' }}>Sukamal Malick</div>
-                  <div style={{ fontSize: '0.74rem', color: 'var(--accent-cyan)' }}>7076962130</div>
+                  <div style={{ fontSize: '0.86rem', fontWeight: '700', color: '#fff' }}>Sukamal Malick</div>
+                  <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>Organizer</div>
                 </div>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <a href="tel:7076962130" className="btn btn-outline" style={{ padding: '6px 10px', fontSize: '0.76rem', gap: '4px' }} title="Call Sukamal">
-                    <Phone size={12} /> Call
-                  </a>
-                  <a href="https://wa.me/917076962130" target="_blank" rel="noreferrer" className="btn btn-primary" style={{ padding: '6px 10px', fontSize: '0.76rem', background: '#25D366', borderColor: '#25D366', gap: '4px' }} title="WhatsApp Sukamal">
-                    <MessageSquare size={12} /> WhatsApp
-                  </a>
-                </div>
+                <a href="tel:7076962130" className="btn btn-outline" style={{ padding: '6px 12px', fontSize: '0.8rem', gap: '6px', borderColor: 'var(--accent-cyan)', color: 'var(--accent-cyan)' }} title="Call Sukamal Malick">
+                  <Phone size={13} /> 7076962130
+                </a>
               </div>
 
-              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontSize: '0.84rem', fontWeight: '700', color: '#fff' }}>Soumojit Nandi</div>
-                  <div style={{ fontSize: '0.74rem', color: 'var(--accent-cyan)' }}>8348082759</div>
+                  <div style={{ fontSize: '0.86rem', fontWeight: '700', color: '#fff' }}>Soumojit Nandi</div>
+                  <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>Organizer</div>
                 </div>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <a href="tel:8348082759" className="btn btn-outline" style={{ padding: '6px 10px', fontSize: '0.76rem', gap: '4px' }} title="Call Soumojit">
-                    <Phone size={12} /> Call
-                  </a>
-                  <a href="https://wa.me/918348082759" target="_blank" rel="noreferrer" className="btn btn-primary" style={{ padding: '6px 10px', fontSize: '0.76rem', background: '#25D366', borderColor: '#25D366', gap: '4px' }} title="WhatsApp Soumojit">
-                    <MessageSquare size={12} /> WhatsApp
-                  </a>
-                </div>
+                <a href="tel:8348082759" className="btn btn-outline" style={{ padding: '6px 12px', fontSize: '0.8rem', gap: '6px', borderColor: 'var(--accent-cyan)', color: 'var(--accent-cyan)' }} title="Call Soumojit Nandi">
+                  <Phone size={13} /> 8348082759
+                </a>
               </div>
             </div>
           </div>

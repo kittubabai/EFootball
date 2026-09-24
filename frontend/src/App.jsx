@@ -167,31 +167,21 @@ export default function App() {
           <div className="sidebar-contacts-card">
             <div className="sidebar-contacts-header">
               <PhoneCall size={13} />
-              <span>Organizer Support</span>
+              <span>Organizer Contacts</span>
             </div>
 
             <div className="sidebar-contact-item">
               <div className="sidebar-contact-name">Sukamal Malick</div>
-              <div className="sidebar-contact-actions">
-                <a href="tel:7076962130" className="sidebar-contact-btn call" title="Call Sukamal">
-                  <Phone size={12} /> 7076962130
-                </a>
-                <a href="https://wa.me/917076962130" target="_blank" rel="noreferrer" className="sidebar-contact-btn wa" title="WhatsApp Sukamal">
-                  <MessageSquare size={12} />
-                </a>
-              </div>
+              <a href="tel:7076962130" className="sidebar-contact-btn call" title="Call Sukamal Malick">
+                <Phone size={12} /> 7076962130
+              </a>
             </div>
 
             <div className="sidebar-contact-item">
               <div className="sidebar-contact-name">Soumojit Nandi</div>
-              <div className="sidebar-contact-actions">
-                <a href="tel:8348082759" className="sidebar-contact-btn call" title="Call Soumojit">
-                  <Phone size={12} /> 8348082759
-                </a>
-                <a href="https://wa.me/918348082759" target="_blank" rel="noreferrer" className="sidebar-contact-btn wa" title="WhatsApp Soumojit">
-                  <MessageSquare size={12} />
-                </a>
-              </div>
+              <a href="tel:8348082759" className="sidebar-contact-btn call" title="Call Soumojit Nandi">
+                <Phone size={12} /> 8348082759
+              </a>
             </div>
           </div>
         </aside>
