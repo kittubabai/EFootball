@@ -185,7 +185,15 @@ export default function TopScorersTab({ isAdmin, adminPin, onScoreUpdated }) {
 
                       <td style={{ padding: '12px' }}>
                         {p.group_assigned ? (
-                          <span style={{ fontSize: '0.75rem', background: 'rgba(0, 229, 255, 0.1)', color: 'var(--accent-cyan)', padding: '3px 8px', borderRadius: '4px', fontWeight: '700' }}>
+                          <span style={{ 
+                            fontSize: '0.75rem', 
+                            background: p.group_assigned === 'A' ? 'rgba(0, 229, 255, 0.12)' : p.group_assigned === 'B' ? 'rgba(255, 190, 11, 0.12)' : p.group_assigned === 'C' ? 'rgba(179, 136, 255, 0.12)' : 'rgba(244, 63, 94, 0.12)', 
+                            color: p.group_assigned === 'A' ? '#00e5ff' : p.group_assigned === 'B' ? '#ffbe0b' : p.group_assigned === 'C' ? '#b388ff' : '#f43f5e', 
+                            border: `1px solid ${p.group_assigned === 'A' ? 'rgba(0, 229, 255, 0.35)' : p.group_assigned === 'B' ? 'rgba(255, 190, 11, 0.35)' : p.group_assigned === 'C' ? 'rgba(179, 136, 255, 0.35)' : 'rgba(244, 63, 94, 0.35)'}`,
+                            padding: '3px 8px', 
+                            borderRadius: '4px', 
+                            fontWeight: '700' 
+                          }}>
                             Group {p.group_assigned}
                           </span>
                         ) : (

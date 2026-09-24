@@ -1,6 +1,65 @@
 import React, { useState } from 'react';
 import { Trophy, Award, Edit3, HelpCircle, Users, Medal, ChevronDown, ChevronUp, ChevronsUpDown, Sparkles } from 'lucide-react';
 
+// Distinct vibrant room palettes (Green is strictly reserved for payment verification badges)
+const GROUP_THEMES = {
+  A: {
+    name: 'Electric Cyan',
+    color: '#00e5ff',
+    nameColor: '#38bdf8',
+    gradient: 'linear-gradient(135deg, rgba(0, 229, 255, 0.14), rgba(6, 20, 36, 0.7))',
+    collapsedGradient: 'linear-gradient(135deg, rgba(0, 229, 255, 0.05), rgba(255, 255, 255, 0.02))',
+    border: 'rgba(0, 229, 255, 0.45)',
+    badgeBg: 'rgba(0, 229, 255, 0.16)',
+    badgeBorder: 'rgba(0, 229, 255, 0.55)',
+    glow: '0 8px 30px rgba(0, 229, 255, 0.14)'
+  },
+  B: {
+    name: 'Golden Amber',
+    color: '#ffbe0b',
+    nameColor: '#ffd166',
+    gradient: 'linear-gradient(135deg, rgba(255, 190, 11, 0.14), rgba(35, 25, 6, 0.7))',
+    collapsedGradient: 'linear-gradient(135deg, rgba(255, 190, 11, 0.05), rgba(255, 255, 255, 0.02))',
+    border: 'rgba(255, 190, 11, 0.45)',
+    badgeBg: 'rgba(255, 190, 11, 0.16)',
+    badgeBorder: 'rgba(255, 190, 11, 0.55)',
+    glow: '0 8px 30px rgba(255, 190, 11, 0.14)'
+  },
+  C: {
+    name: 'Neon Violet',
+    color: '#b388ff',
+    nameColor: '#c084fc',
+    gradient: 'linear-gradient(135deg, rgba(179, 136, 255, 0.14), rgba(24, 10, 38, 0.7))',
+    collapsedGradient: 'linear-gradient(135deg, rgba(179, 136, 255, 0.05), rgba(255, 255, 255, 0.02))',
+    border: 'rgba(179, 136, 255, 0.45)',
+    badgeBg: 'rgba(179, 136, 255, 0.16)',
+    badgeBorder: 'rgba(179, 136, 255, 0.55)',
+    glow: '0 8px 30px rgba(179, 136, 255, 0.14)'
+  },
+  D: {
+    name: 'Sunset Rose',
+    color: '#f43f5e',
+    nameColor: '#fb7185',
+    gradient: 'linear-gradient(135deg, rgba(244, 63, 94, 0.14), rgba(36, 10, 18, 0.7))',
+    collapsedGradient: 'linear-gradient(135deg, rgba(244, 63, 94, 0.05), rgba(255, 255, 255, 0.02))',
+    border: 'rgba(244, 63, 94, 0.45)',
+    badgeBg: 'rgba(244, 63, 94, 0.16)',
+    badgeBorder: 'rgba(244, 63, 94, 0.55)',
+    glow: '0 8px 30px rgba(244, 63, 94, 0.14)'
+  },
+  FINALS: {
+    name: 'Grand Championship',
+    color: '#ffbe0b',
+    nameColor: '#ffd166',
+    gradient: 'linear-gradient(135deg, rgba(255, 190, 11, 0.20), rgba(35, 25, 6, 0.7))',
+    collapsedGradient: 'linear-gradient(135deg, rgba(255, 190, 11, 0.05), rgba(255, 255, 255, 0.02))',
+    border: 'rgba(255, 190, 11, 0.55)',
+    badgeBg: 'rgba(255, 190, 11, 0.16)',
+    badgeBorder: 'rgba(255, 190, 11, 0.55)',
+    glow: '0 8px 32px rgba(255, 190, 11, 0.18)'
+  }
+};
+
 export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
   // Accordion state: only one section open at a time (A, B, C, D, FINALS, or null)
   const [openSection, setOpenSection] = useState(() => {
@@ -40,7 +99,7 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
           Player registrations and ₹100 payments are currently being verified. Once registration closes, the 32 players will be distributed into <strong>4 Custom Rooms of 8 players (A, B, C, D)</strong> and the brackets will appear live here!
         </p>
         {isAdmin && (
-          <div style={{ marginTop: '16px', color: 'var(--accent-green)', fontSize: '0.9rem' }}>
+          <div style={{ marginTop: '16px', color: 'var(--accent-gold)', fontSize: '0.9rem' }}>
             💡 <strong>Admin Tip:</strong> Open the Admin Panel to verify payments and click "Seed 4 Groups & Start Tournament".
           </div>
         )}
@@ -49,36 +108,57 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
   }
 
   // Render a match card
-  const renderMatchCard = (match) => {
+  const renderMatchCard = (match, groupKey = null) => {
     if (!match) return null;
     const isCompleted = match.status === 'completed' || match.status === 'bye';
     const p1Won = match.winner_id && match.player1 && match.winner_id === match.player1.id;
     const p2Won = match.winner_id && match.player2 && match.winner_id === match.player2.id;
     const canEdit = isAdmin && match.player1 && match.player2 && match.status !== 'bye';
 
+    // Group / room theme color resolution
+    const effectiveKey = groupKey || match.group_key || (match.round_index > 3 ? 'FINALS' : 'A');
+    const theme = GROUP_THEMES[effectiveKey] || GROUP_THEMES.FINALS;
+
+    const p1NameColor = match.player1 ? (p1Won ? theme.color : theme.nameColor) : 'var(--text-dim)';
+    const p2NameColor = match.player2 ? (p2Won ? theme.color : theme.nameColor) : 'var(--text-dim)';
+
     return (
       <div 
         key={match.id} 
         className={`match-card ${isCompleted ? 'completed' : ''}`}
         onClick={() => canEdit && onOpenScoreModal(match)}
-        style={{ cursor: canEdit ? 'pointer' : 'default', minWidth: '240px' }}
+        style={{ 
+          cursor: canEdit ? 'pointer' : 'default', 
+          minWidth: '240px',
+          borderColor: isCompleted ? theme.badgeBorder : 'rgba(255, 255, 255, 0.08)'
+        }}
         title={canEdit ? "Admin: Click to enter or update score" : undefined}
       >
-        <div className="match-header-tag">
-          <span>{match.round_name}</span>
+        <div className="match-header-tag" style={{ borderBottomColor: 'rgba(255, 255, 255, 0.06)' }}>
+          <span style={{ color: theme.color, fontWeight: '700' }}>{match.round_name}</span>
           {match.is_extra_time && <span style={{ color: 'var(--accent-gold)' }}>AET</span>}
           {match.status === 'bye' && <span style={{ color: 'var(--accent-cyan)' }}>BYE</span>}
           {canEdit && (
-            <span style={{ color: 'var(--accent-green)', display: 'flex', alignItems: 'center', gap: '2px' }}>
+            <span style={{ color: theme.color, display: 'flex', alignItems: 'center', gap: '2px', fontWeight: '700' }}>
               <Edit3 size={11} /> Edit
             </span>
           )}
         </div>
 
         {/* Player 1 */}
-        <div className={`match-participant ${p1Won ? 'winner' : ''}`}>
+        <div 
+          className={`match-participant ${p1Won ? 'winner' : ''}`}
+          style={p1Won ? { background: theme.badgeBg } : undefined}
+        >
           <div className="participant-details">
-            <div className="participant-name">
+            <div 
+              className="participant-name"
+              style={{
+                color: p1NameColor,
+                fontWeight: match.player1 ? (p1Won ? '800' : '700') : '500',
+                textShadow: p1Won ? `0 0 10px ${theme.badgeBg}` : 'none'
+              }}
+            >
               {match.player1 ? match.player1.name : (match.status === 'bye' ? '—' : 'TBD')}
             </div>
             <div className="participant-sub">
@@ -87,20 +167,30 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <span className="participant-score">
+            <span className="participant-score" style={{ color: p1Won ? theme.color : '#fff' }}>
               {match.player1_score !== null ? match.player1_score : '-'}
             </span>
             {match.player1_pk !== null && (
               <span className="pk-pill">({match.player1_pk})</span>
             )}
-            {p1Won && <Award size={16} style={{ color: 'var(--accent-green)', marginLeft: '6px' }} />}
+            {p1Won && <Award size={16} style={{ color: theme.color, marginLeft: '6px' }} />}
           </div>
         </div>
 
         {/* Player 2 */}
-        <div className={`match-participant ${p2Won ? 'winner' : ''}`}>
+        <div 
+          className={`match-participant ${p2Won ? 'winner' : ''}`}
+          style={p2Won ? { background: theme.badgeBg } : undefined}
+        >
           <div className="participant-details">
-            <div className="participant-name">
+            <div 
+              className="participant-name"
+              style={{
+                color: p2NameColor,
+                fontWeight: match.player2 ? (p2Won ? '800' : '700') : '500',
+                textShadow: p2Won ? `0 0 10px ${theme.badgeBg}` : 'none'
+              }}
+            >
               {match.player2 ? match.player2.name : (match.status === 'bye' ? 'BYE' : 'TBD')}
             </div>
             <div className="participant-sub">
@@ -109,61 +199,18 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <span className="participant-score">
+            <span className="participant-score" style={{ color: p2Won ? theme.color : '#fff' }}>
               {match.player2_score !== null ? match.player2_score : '-'}
             </span>
             {match.player2_pk !== null && (
               <span className="pk-pill">({match.player2_pk})</span>
             )}
-            {p2Won && <Award size={16} style={{ color: 'var(--accent-green)', marginLeft: '6px' }} />}
+            {p2Won && <Award size={16} style={{ color: theme.color, marginLeft: '6px' }} />}
           </div>
         </div>
       </div>
     );
   };
-
-const GROUP_THEMES = {
-  A: {
-    name: 'Electric Cyan',
-    color: '#00e5ff',
-    gradient: 'linear-gradient(135deg, rgba(0, 229, 255, 0.14), rgba(6, 20, 36, 0.7))',
-    collapsedGradient: 'linear-gradient(135deg, rgba(0, 229, 255, 0.05), rgba(255, 255, 255, 0.02))',
-    border: 'rgba(0, 229, 255, 0.45)',
-    badgeBg: 'rgba(0, 229, 255, 0.16)',
-    badgeBorder: 'rgba(0, 229, 255, 0.55)',
-    glow: '0 8px 30px rgba(0, 229, 255, 0.14)'
-  },
-  B: {
-    name: 'Emerald Green',
-    color: '#00ff87',
-    gradient: 'linear-gradient(135deg, rgba(0, 255, 135, 0.14), rgba(6, 28, 18, 0.7))',
-    collapsedGradient: 'linear-gradient(135deg, rgba(0, 255, 135, 0.05), rgba(255, 255, 255, 0.02))',
-    border: 'rgba(0, 255, 135, 0.45)',
-    badgeBg: 'rgba(0, 255, 135, 0.16)',
-    badgeBorder: 'rgba(0, 255, 135, 0.55)',
-    glow: '0 8px 30px rgba(0, 255, 135, 0.14)'
-  },
-  C: {
-    name: 'Neon Violet',
-    color: '#b388ff',
-    gradient: 'linear-gradient(135deg, rgba(179, 136, 255, 0.14), rgba(24, 10, 38, 0.7))',
-    collapsedGradient: 'linear-gradient(135deg, rgba(179, 136, 255, 0.05), rgba(255, 255, 255, 0.02))',
-    border: 'rgba(179, 136, 255, 0.45)',
-    badgeBg: 'rgba(179, 136, 255, 0.16)',
-    badgeBorder: 'rgba(179, 136, 255, 0.55)',
-    glow: '0 8px 30px rgba(179, 136, 255, 0.14)'
-  },
-  D: {
-    name: 'Sunset Flame',
-    color: '#ff7043',
-    gradient: 'linear-gradient(135deg, rgba(255, 112, 67, 0.14), rgba(36, 14, 10, 0.7))',
-    collapsedGradient: 'linear-gradient(135deg, rgba(255, 112, 67, 0.05), rgba(255, 255, 255, 0.02))',
-    border: 'rgba(255, 112, 67, 0.45)',
-    badgeBg: 'rgba(255, 112, 67, 0.16)',
-    badgeBorder: 'rgba(255, 112, 67, 0.55)',
-    glow: '0 8px 30px rgba(255, 112, 67, 0.14)'
-  }
-};
 
   // Render individual 8-player group section (A, B, C, D)
   const renderGroupSection = (groupKey) => {
@@ -270,7 +317,7 @@ const GROUP_THEMES = {
                     Quarter-Finals (4 Matches)
                   </div>
                   <div className="round-matches">
-                    {qfMatches.map(m => renderMatchCard(m))}
+                    {qfMatches.map(m => renderMatchCard(m, groupKey))}
                   </div>
                 </div>
 
@@ -280,7 +327,7 @@ const GROUP_THEMES = {
                     Semi-Finals (2 Matches)
                   </div>
                   <div className="round-matches">
-                    {sfMatches.map(m => renderMatchCard(m))}
+                    {sfMatches.map(m => renderMatchCard(m, groupKey))}
                   </div>
                 </div>
 
@@ -290,7 +337,7 @@ const GROUP_THEMES = {
                     Group Final (To Final 4)
                   </div>
                   <div className="round-matches">
-                    {gfMatches.map(m => renderMatchCard(m))}
+                    {gfMatches.map(m => renderMatchCard(m, groupKey))}
                   </div>
                 </div>
               </div>
@@ -446,7 +493,7 @@ const GROUP_THEMES = {
                   Final 4 Semi-Finals (2 Matches)
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {semiFinals.map(m => renderMatchCard(m))}
+                  {semiFinals.map(m => renderMatchCard(m, 'FINALS'))}
                 </div>
               </div>
 
@@ -461,7 +508,7 @@ const GROUP_THEMES = {
                     <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#ffbe0b', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Medal size={16} /> 🥇 Grand Final (Decides 1st & 2nd Place)
                     </div>
-                    {renderMatchCard(grandFinal)}
+                    {renderMatchCard(grandFinal, 'FINALS')}
                   </div>
 
                   {/* 3rd Place Match */}
@@ -469,7 +516,7 @@ const GROUP_THEMES = {
                     <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#cd7f32', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Medal size={16} /> 🥉 3rd Place Playoff (Decides 3rd Position)
                     </div>
-                    {renderMatchCard(thirdPlace)}
+                    {renderMatchCard(thirdPlace, 'FINALS')}
                   </div>
                 </div>
               </div>
@@ -496,24 +543,28 @@ const GROUP_THEMES = {
 
         {/* Quick Room Jump Buttons */}
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          {['A', 'B', 'C', 'D'].map(g => (
-            <button
-              key={g}
-              type="button"
-              onClick={() => toggleSection(g)}
-              className="btn btn-outline"
-              style={{
-                padding: '6px 12px',
-                fontSize: '0.78rem',
-                borderColor: openSection === g ? 'var(--accent-cyan)' : 'var(--border-color)',
-                color: openSection === g ? 'var(--accent-cyan)' : 'var(--text-muted)',
-                background: openSection === g ? 'rgba(0, 229, 255, 0.12)' : 'transparent',
-                fontWeight: openSection === g ? '800' : '600'
-              }}
-            >
-              Room {g}
-            </button>
-          ))}
+          {['A', 'B', 'C', 'D'].map(g => {
+            const btnTheme = GROUP_THEMES[g] || GROUP_THEMES.A;
+            const isOpen = openSection === g;
+            return (
+              <button
+                key={g}
+                type="button"
+                onClick={() => toggleSection(g)}
+                className="btn btn-outline"
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '0.78rem',
+                  borderColor: isOpen ? btnTheme.badgeBorder : 'var(--border-color)',
+                  color: isOpen ? btnTheme.color : 'var(--text-muted)',
+                  background: isOpen ? btnTheme.badgeBg : 'transparent',
+                  fontWeight: isOpen ? '800' : '600'
+                }}
+              >
+                Room {g}
+              </button>
+            );
+          })}
           <button
             type="button"
             onClick={() => toggleSection('FINALS')}
@@ -521,9 +572,9 @@ const GROUP_THEMES = {
             style={{
               padding: '6px 12px',
               fontSize: '0.78rem',
-              borderColor: openSection === 'FINALS' ? 'var(--accent-gold)' : 'var(--border-color)',
-              color: openSection === 'FINALS' ? 'var(--accent-gold)' : 'var(--text-muted)',
-              background: openSection === 'FINALS' ? 'rgba(255, 190, 11, 0.15)' : 'transparent',
+              borderColor: openSection === 'FINALS' ? 'rgba(255, 190, 11, 0.6)' : 'var(--border-color)',
+              color: openSection === 'FINALS' ? '#ffbe0b' : 'var(--text-muted)',
+              background: openSection === 'FINALS' ? 'rgba(255, 190, 11, 0.18)' : 'transparent',
               fontWeight: openSection === 'FINALS' ? '800' : '600'
             }}
           >

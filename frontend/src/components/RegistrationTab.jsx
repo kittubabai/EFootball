@@ -300,6 +300,25 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
               ) : (
                 filteredPlayers.map((player, index) => {
                   const isVerified = player.payment_status === 'verified';
+                  // Non-green distinct aesthetic color palette for player names
+                  const PLAYER_COLORS = ['#38bdf8', '#ffd166', '#c084fc', '#fb7185'];
+                  const nameColor = player.group_assigned === 'A' 
+                    ? '#38bdf8' 
+                    : player.group_assigned === 'B' 
+                    ? '#ffd166' 
+                    : player.group_assigned === 'C' 
+                    ? '#c084fc' 
+                    : player.group_assigned === 'D' 
+                    ? '#fb7185' 
+                    : PLAYER_COLORS[index % PLAYER_COLORS.length];
+
+                  const groupTheme = {
+                    A: { color: '#00e5ff', bg: 'rgba(0, 229, 255, 0.12)', border: 'rgba(0, 229, 255, 0.35)' },
+                    B: { color: '#ffbe0b', bg: 'rgba(255, 190, 11, 0.12)', border: 'rgba(255, 190, 11, 0.35)' },
+                    C: { color: '#b388ff', bg: 'rgba(179, 136, 255, 0.12)', border: 'rgba(179, 136, 255, 0.35)' },
+                    D: { color: '#f43f5e', bg: 'rgba(244, 63, 94, 0.12)', border: 'rgba(244, 63, 94, 0.35)' }
+                  }[player.group_assigned];
+
                   return (
                     <div key={player.id} className="player-item-card">
                       <div className="player-info">
@@ -307,15 +326,17 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
                           {isVerified ? '✓' : `#${index + 1}`}
                         </div>
                         <div>
-                          <div className="player-name">{player.name}</div>
+                          <div className="player-name" style={{ color: nameColor, fontWeight: '700' }}>
+                            {player.name}
+                          </div>
                           <div className="player-team">{player.team_name || 'Dream Team'}</div>
-                          {player.group_assigned && (
+                          {player.group_assigned && groupTheme && (
                             <span 
                               style={{ 
                                 fontSize: '0.72rem', 
-                                color: player.group_assigned === 'A' ? '#00e5ff' : player.group_assigned === 'B' ? '#00ff87' : player.group_assigned === 'C' ? '#b388ff' : '#ff7043', 
-                                background: player.group_assigned === 'A' ? 'rgba(0, 229, 255, 0.12)' : player.group_assigned === 'B' ? 'rgba(0, 255, 135, 0.12)' : player.group_assigned === 'C' ? 'rgba(179, 136, 255, 0.12)' : 'rgba(255, 112, 67, 0.12)',
-                                border: `1px solid ${player.group_assigned === 'A' ? 'rgba(0, 229, 255, 0.35)' : player.group_assigned === 'B' ? 'rgba(0, 255, 135, 0.35)' : player.group_assigned === 'C' ? 'rgba(179, 136, 255, 0.35)' : 'rgba(255, 112, 67, 0.35)'}`,
+                                color: groupTheme.color, 
+                                background: groupTheme.bg,
+                                border: `1px solid ${groupTheme.border}`,
                                 padding: '1px 6px',
                                 borderRadius: '4px',
                                 fontWeight: '700',
