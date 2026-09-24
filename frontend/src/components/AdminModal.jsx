@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Lock, ShieldCheck, Shuffle, RotateCcw, UserPlus, Trash2, AlertCircle, CheckCircle2, Check, Clock, Eye, Target, Trophy, Flame, Edit2, RefreshCw, Award, Download, Send, Share2, Sparkles, Medal, FileText } from 'lucide-react';
+import { X, Lock, Key, ShieldCheck, Shuffle, RotateCcw, UserPlus, Trash2, AlertCircle, CheckCircle2, Check, Clock, Eye, Target, Trophy, Flame, Edit2, RefreshCw, Award, Download, Send, Share2, Sparkles, Medal, FileText } from 'lucide-react';
 
 export default function AdminModal({ 
   isOpen, 
@@ -17,8 +17,15 @@ export default function AdminModal({
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState({ text: '', type: '' });
   const [viewScreenshot, setViewScreenshot] = useState(null);
-  const [adminTab, setAdminTab] = useState('players'); // 'players' | 'goals' | 'certificates'
+  const [adminTab, setAdminTab] = useState('players'); // 'players' | 'goals' | 'certificates' | 'security'
   
+  // Password Change State
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [changePwLoading, setChangePwLoading] = useState(false);
+  const [changePwMsg, setChangePwMsg] = useState({ text: '', type: '' });
+
   // Player Edit State
   const [editPlayerForm, setEditPlayerForm] = useState(null);
 
@@ -86,6 +93,55 @@ export default function AdminModal({
       setMsg({ text: err.message, type: 'error' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setChangePwMsg({ text: '', type: '' });
+
+    const trimmed = newPassword.trim();
+    if (!trimmed) {
+      setChangePwMsg({ text: 'Please enter a new password.', type: 'error' });
+      return;
+    }
+    if (trimmed.length > 10) {
+      setChangePwMsg({ text: 'Password must be maximum 10 alphanumeric characters.', type: 'error' });
+      return;
+    }
+    const isAlphanumeric = /^[a-zA-Z0-9]+$/.test(trimmed);
+    if (!isAlphanumeric) {
+      setChangePwMsg({ text: 'Password must contain only letters and numbers (alphanumeric, max 10 characters).', type: 'error' });
+      return;
+    }
+    if (trimmed !== confirmPassword.trim()) {
+      setChangePwMsg({ text: 'New password and confirmation do not match.', type: 'error' });
+      return;
+    }
+
+    setChangePwLoading(true);
+    try {
+      const res = await fetch('/api/admin/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Pin': adminPin
+        },
+        body: JSON.stringify({ newPassword: trimmed })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || 'Failed to update password');
+      }
+
+      onLoginSuccess(trimmed);
+      setNewPassword('');
+      setConfirmPassword('');
+      setChangePwMsg({ text: 'Organizer password updated successfully!', type: 'success' });
+    } catch (err) {
+      setChangePwMsg({ text: err.message, type: 'error' });
+    } finally {
+      setChangePwLoading(false);
     }
   };
 
@@ -477,17 +533,17 @@ export default function AdminModal({
         {!isAdmin ? (
           <form onSubmit={handleLogin}>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '16px' }}>
-              Please enter your 4-digit Administrator PIN to manage players, verify ₹100 payments, and record goals.
+              Please enter your Administrator Password / PIN to manage players, verify ₹100 payments, and record goals.
             </p>
             <div className="form-group">
-              <label className="form-label">Organizer Security PIN</label>
+              <label className="form-label">Organizer Security Password / PIN</label>
               <input 
                 type="password" 
-                placeholder="Default: 1234" 
+                placeholder="Enter Administrator Password" 
                 value={pinInput} 
                 onChange={e => setPinInput(e.target.value)} 
                 className="form-input" 
-                maxLength={8}
+                maxLength={10}
                 autoFocus 
                 required 
               />
@@ -546,6 +602,16 @@ export default function AdminModal({
               >
                 <Award size={14} color="#ffbe0b" />
                 <span>📜 Top 4 Certificates</span>
+              </button>
+
+              <button 
+                type="button"
+                onClick={() => { setAdminTab('security'); setChangePwMsg({ text: '', type: '' }); }}
+                className={`tab-btn ${adminTab === 'security' ? 'active' : ''}`}
+                style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+              >
+                <Key size={14} color="var(--accent-cyan)" />
+                <span>🔐 Change Password</span>
               </button>
             </div>
 
@@ -941,6 +1007,103 @@ export default function AdminModal({
                     <span>Send on WhatsApp</span>
                   </button>
                 </div>
+              </div>
+            )}
+
+            {/* TAB 4: Admin Security / Change Password */}
+            {adminTab === 'security' && (
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(0, 229, 255, 0.2)', borderRadius: '10px', padding: '18px', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'rgba(0, 229, 255, 0.12)', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Key size={18} />
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '0.96rem', fontWeight: '800', margin: 0 }}>Change Organizer Password</h4>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Administrator credentials remain strictly confidential. Maximum 10 alphanumeric characters.</div>
+                  </div>
+                </div>
+
+                {changePwMsg.text && (
+                  <div className={`alert ${changePwMsg.type === 'error' ? 'alert-error' : 'alert-success'}`} style={{ marginBottom: '14px', fontSize: '0.82rem' }}>
+                    {changePwMsg.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />}
+                    <div>{changePwMsg.text}</div>
+                  </div>
+                )}
+
+                <form onSubmit={handleChangePassword}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '14px' }}>
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.78rem' }}>New Password (Max 10 Alphanumeric)</label>
+                      <div style={{ position: 'relative' }}>
+                        <input 
+                          type={showNewPw ? 'text' : 'password'}
+                          value={newPassword}
+                          onChange={e => setNewPassword(e.target.value)}
+                          className="form-input"
+                          placeholder="e.g. Admin99"
+                          maxLength={10}
+                          style={{ paddingRight: '36px', fontSize: '0.84rem' }}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPw(!showNewPw)}
+                          style={{
+                            position: 'absolute',
+                            right: '10px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--text-muted)',
+                            cursor: 'pointer',
+                            padding: 0
+                          }}
+                          title={showNewPw ? 'Hide password' : 'Show password'}
+                        >
+                          <Eye size={16} />
+                        </button>
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                        Letters and numbers only (A-Z, a-z, 0-9). Max 10 chars.
+                      </div>
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.78rem' }}>Confirm New Password</label>
+                      <input 
+                        type={showNewPw ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={e => setConfirmPassword(e.target.value)}
+                        className="form-input"
+                        placeholder="Re-enter new password"
+                        maxLength={10}
+                        style={{ fontSize: '0.84rem' }}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                    <button 
+                      type="button" 
+                      onClick={() => { setNewPassword(''); setConfirmPassword(''); setChangePwMsg({ text: '', type: '' }); }}
+                      className="btn btn-outline"
+                      style={{ fontSize: '0.8rem', padding: '6px 14px' }}
+                    >
+                      Clear
+                    </button>
+                    <button 
+                      type="submit" 
+                      className="btn btn-primary"
+                      disabled={changePwLoading || !newPassword}
+                      style={{ fontSize: '0.8rem', padding: '6px 16px', gap: '6px' }}
+                    >
+                      <Lock size={14} />
+                      <span>{changePwLoading ? 'Updating...' : 'Save New Password'}</span>
+                    </button>
+                  </div>
+                </form>
               </div>
             )}
 

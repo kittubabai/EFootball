@@ -342,6 +342,32 @@ app.post('/api/admin/login', async (req: Request, res: Response) => {
   }
 });
 
+app.all(['/api/admin/change-pin', '/api/admin/change-password'], verifyAdminPin, async (req: Request, res: Response) => {
+  try {
+    const { newPin, newPassword } = req.body;
+    const pinToSet = String(newPin || newPassword || '').trim();
+
+    if (!pinToSet) {
+      return res.status(400).json({ detail: 'New password cannot be empty.' });
+    }
+
+    if (pinToSet.length > 10) {
+      return res.status(400).json({ detail: 'Password cannot exceed 10 alphanumeric characters.' });
+    }
+
+    const isAlphanumeric = /^[a-zA-Z0-9]+$/.test(pinToSet);
+    if (!isAlphanumeric) {
+      return res.status(400).json({ detail: 'Password must contain only letters and numbers (alphanumeric, max 10 characters).' });
+    }
+
+    await queryRun('UPDATE tournament_meta SET admin_pin = $1 WHERE id = 1', [pinToSet]);
+
+    res.json({ success: true, message: 'Administrator password updated successfully.' });
+  } catch (err: any) {
+    res.status(500).json({ detail: err.message });
+  }
+});
+
 app.all(['/api/admin/players/:id/verify-payment', '/api/admin/players/:id/payment'], verifyAdminPin, async (req: Request, res: Response) => {
   try {
     const rawId = req.params.id;
