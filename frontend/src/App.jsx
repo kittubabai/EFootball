@@ -14,7 +14,8 @@ import ScoreModal from './components/ScoreModal';
 import PrizesModal from './components/PrizesModal';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('tab_chosen_id') || 'home');
+  // Always start on Tournament Overview ('home') when opening the website
+  const [activeTab, setActiveTab] = useState('home');
   const [tournamentStatus, setTournamentStatus] = useState(null);
   const [players, setPlayers] = useState([]);
   const [bracketData, setBracketData] = useState({ 
@@ -32,6 +33,13 @@ export default function App() {
   const [activeScoreMatch, setActiveScoreMatch] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Clear legacy stored tab keys to ensure every fresh launch starts on Overview
+  useEffect(() => {
+    localStorage.removeItem('tab_chosen_id');
+    localStorage.removeItem('tab_chosen');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
+
   const navItems = [
     { id: 'home', label: 'Tournament Overview', icon: Home },
     { id: 'register', label: `Register (${players.length})`, icon: UserPlus },
@@ -44,8 +52,8 @@ export default function App() {
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
-    localStorage.setItem('tab_chosen_id', tabId);
     setIsSidebarOpen(false); // Auto close sidebar on mobile when tab is tapped
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const fetchData = useCallback(async () => {
@@ -55,9 +63,6 @@ export default function App() {
       if (statusRes.ok) {
         const s = await statusRes.json();
         setTournamentStatus(s);
-        if ((s.status === 'completed' || (s.verified_count >= s.max_players)) && activeTab === 'register' && !localStorage.getItem('tab_chosen')) {
-          setActiveTab('bracket');
-        }
       }
 
       // 2. Fetch players
