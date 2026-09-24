@@ -461,7 +461,18 @@ app.post('/api/admin/reset', verifyAdminPin, async (req: Request, res: Response)
 
 app.post('/api/admin/seed-demo', verifyAdminPin, async (req: Request, res: Response) => {
   try {
-    const count = parseInt((req.query.count as string) || '32', 10);
+    const meta = await queryGet<TournamentMeta>('SELECT max_players FROM tournament_meta WHERE id = 1');
+    const maxPlayers = meta?.max_players || 32;
+
+    const currentVerifiedRow = await queryGet<{ cnt: string }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified'");
+    const currentVerified = parseInt(String(currentVerifiedRow?.cnt || '0'), 10);
+    const slotsAvailable = Math.max(0, maxPlayers - currentVerified);
+
+    if (slotsAvailable === 0) {
+      return res.status(400).json({ detail: `All ${maxPlayers} tournament slots are already filled with verified players!` });
+    }
+
+    const count = Math.min(slotsAvailable, parseInt((req.query.count as string) || '32', 10));
     const sampleTeams = [
       ['Apex Striker', '738-921-001', '+919876543210', 'Real Madrid DT'],
       ['Shadow Dribbler', '492-118-002', '+919876543211', 'FC Barcelona DT'],
@@ -498,7 +509,7 @@ app.post('/api/admin/seed-demo', verifyAdminPin, async (req: Request, res: Respo
     ];
 
     let added = 0;
-    for (let i = 0; i < Math.min(count, sampleTeams.length); i++) {
+    for (let i = 0; i < sampleTeams.length && added < count; i++) {
       const [name, eid, wa, team] = sampleTeams[i];
       const existing = await queryGet('SELECT id FROM players WHERE efootball_id = $1', [eid]);
       if (!existing) {
@@ -511,7 +522,7 @@ app.post('/api/admin/seed-demo', verifyAdminPin, async (req: Request, res: Respo
       }
     }
 
-    res.json({ success: true, added, message: `Added ${added} demo players with verified status.` });
+    res.json({ success: true, added, message: `Added ${added} demo players. Total verified slots: ${currentVerified + added}/${maxPlayers}` });
   } catch (err: any) {
     res.status(500).json({ detail: err.message });
   }
