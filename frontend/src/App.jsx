@@ -178,14 +178,34 @@ export default function App() {
             </div>
 
             <div className="sidebar-contact-item">
-              <div className="sidebar-contact-name">Sukamal Malick</div>
+              <div className="sidebar-contact-info">
+                <img 
+                  src="/sukamal.png" 
+                  alt="Sukamal Malick" 
+                  className="sidebar-contact-avatar"
+                />
+                <div>
+                  <div className="sidebar-contact-name">Sukamal Malick</div>
+                  <div className="sidebar-contact-role">Organizer</div>
+                </div>
+              </div>
               <a href="tel:7076962130" className="sidebar-contact-btn call" title="Call Sukamal Malick">
                 <Phone size={12} /> 7076962130
               </a>
             </div>
 
             <div className="sidebar-contact-item">
-              <div className="sidebar-contact-name">Soumojit Nandi</div>
+              <div className="sidebar-contact-info">
+                <img 
+                  src="/soumojit.jpg" 
+                  alt="Soumojit Nandi" 
+                  className="sidebar-contact-avatar"
+                />
+                <div>
+                  <div className="sidebar-contact-name">Soumojit Nandi</div>
+                  <div className="sidebar-contact-role">Organizer</div>
+                </div>
+              </div>
               <a href="tel:8348082759" className="sidebar-contact-btn call" title="Call Soumojit Nandi">
                 <Phone size={12} /> 8348082759
               </a>

@@ -303,21 +303,35 @@ export default function PaymentTab({ tournamentStatus, players, onPaymentSubmitt
             <div style={{ fontSize: '0.82rem', fontWeight: '800', color: 'var(--accent-gold)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <PhoneCall size={14} /> Need Help with Payment? Contact Organizers:
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
-              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: '0.86rem', fontWeight: '700', color: '#fff' }}>Sukamal Malick</div>
-                  <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>Organizer</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <img 
+                    src="/sukamal.png" 
+                    alt="Sukamal Malick" 
+                    style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--accent-cyan)', flexShrink: 0 }} 
+                  />
+                  <div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#fff' }}>Sukamal Malick</div>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Organizer</div>
+                  </div>
                 </div>
                 <a href="tel:7076962130" className="btn btn-outline" style={{ padding: '6px 12px', fontSize: '0.8rem', gap: '6px', borderColor: 'var(--accent-cyan)', color: 'var(--accent-cyan)' }} title="Call Sukamal Malick">
                   <Phone size={13} /> 7076962130
                 </a>
               </div>
 
-              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: '0.86rem', fontWeight: '700', color: '#fff' }}>Soumojit Nandi</div>
-                  <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>Organizer</div>
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <img 
+                    src="/soumojit.jpg" 
+                    alt="Soumojit Nandi" 
+                    style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--accent-cyan)', flexShrink: 0 }} 
+                  />
+                  <div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#fff' }}>Soumojit Nandi</div>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Organizer</div>
+                  </div>
                 </div>
                 <a href="tel:8348082759" className="btn btn-outline" style={{ padding: '6px 12px', fontSize: '0.8rem', gap: '6px', borderColor: 'var(--accent-cyan)', color: 'var(--accent-cyan)' }} title="Call Soumojit Nandi">
                   <Phone size={13} /> 8348082759

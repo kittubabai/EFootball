@@ -182,12 +182,14 @@ export default function HeroBanner({ tournamentStatus, playersCount, onOpenPrize
               <span style={{ color: 'var(--accent-gold)', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <PhoneCall size={12} /> Helpline:
               </span>
-              <a href="tel:7076962130" style={{ color: '#fff', textDecoration: 'none', background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.12)' }} title="Call Sukamal Malick">
-                Sukamal: <strong>7076962130</strong>
+              <a href="tel:7076962130" style={{ color: '#fff', textDecoration: 'none', background: 'rgba(255,255,255,0.06)', padding: '3px 8px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)', display: 'inline-flex', alignItems: 'center', gap: '6px' }} title="Call Sukamal Malick">
+                <img src="/sukamal.png" alt="Sukamal" style={{ width: '18px', height: '18px', borderRadius: '50%', objectFit: 'cover' }} />
+                <span>Sukamal: <strong>7076962130</strong></span>
               </a>
               <span style={{ color: 'var(--text-dim)' }}>•</span>
-              <a href="tel:8348082759" style={{ color: '#fff', textDecoration: 'none', background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.12)' }} title="Call Soumojit Nandi">
-                Soumojit: <strong>8348082759</strong>
+              <a href="tel:8348082759" style={{ color: '#fff', textDecoration: 'none', background: 'rgba(255,255,255,0.06)', padding: '3px 8px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.12)', display: 'inline-flex', alignItems: 'center', gap: '6px' }} title="Call Soumojit Nandi">
+                <img src="/soumojit.jpg" alt="Soumojit" style={{ width: '18px', height: '18px', borderRadius: '50%', objectFit: 'cover' }} />
+                <span>Soumojit: <strong>8348082759</strong></span>
               </a>
             </div>
           </div>

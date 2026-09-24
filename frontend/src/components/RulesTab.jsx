@@ -170,23 +170,37 @@ export default function RulesTab() {
         <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', marginBottom: '14px' }}>
           For match queries, room coordinates, or tournament assistance, contact our organizers:
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontSize: '0.92rem', fontWeight: '800', color: '#fff' }}>Sukamal Malick</div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Organizer</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <img 
+                src="/sukamal.png" 
+                alt="Sukamal Malick" 
+                style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--accent-cyan)', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', flexShrink: 0 }} 
+              />
+              <div>
+                <div style={{ fontSize: '0.94rem', fontWeight: '800', color: '#fff' }}>Sukamal Malick</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Organizer</div>
+              </div>
             </div>
-            <a href="tel:7076962130" className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '0.82rem', gap: '6px', borderColor: 'var(--accent-cyan)', color: 'var(--accent-cyan)' }} title="Call Sukamal Malick">
+            <a href="tel:7076962130" className="btn btn-outline" style={{ padding: '7px 14px', fontSize: '0.82rem', gap: '6px', borderColor: 'var(--accent-cyan)', color: 'var(--accent-cyan)' }} title="Call Sukamal Malick">
               <Phone size={13} /> 7076962130
             </a>
           </div>
 
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontSize: '0.92rem', fontWeight: '800', color: '#fff' }}>Soumojit Nandi</div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Organizer</div>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <img 
+                src="/soumojit.jpg" 
+                alt="Soumojit Nandi" 
+                style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--accent-cyan)', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', flexShrink: 0 }} 
+              />
+              <div>
+                <div style={{ fontSize: '0.94rem', fontWeight: '800', color: '#fff' }}>Soumojit Nandi</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Organizer</div>
+              </div>
             </div>
-            <a href="tel:8348082759" className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '0.82rem', gap: '6px', borderColor: 'var(--accent-cyan)', color: 'var(--accent-cyan)' }} title="Call Soumojit Nandi">
+            <a href="tel:8348082759" className="btn btn-outline" style={{ padding: '7px 14px', fontSize: '0.82rem', gap: '6px', borderColor: 'var(--accent-cyan)', color: 'var(--accent-cyan)' }} title="Call Soumojit Nandi">
               <Phone size={13} /> 8348082759
             </a>
           </div>
