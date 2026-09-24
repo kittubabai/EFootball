@@ -13,9 +13,35 @@ import AdminModal from './components/AdminModal';
 import ScoreModal from './components/ScoreModal';
 import PrizesModal from './components/PrizesModal';
 
+// Differentiate Page Reload vs Fresh Visit
+const getInitialTab = () => {
+  try {
+    let isReload = false;
+    const navEntries = performance.getEntriesByType('navigation');
+    if (navEntries && navEntries.length > 0) {
+      isReload = navEntries[0].type === 'reload';
+    } else if (window.performance && window.performance.navigation) {
+      isReload = window.performance.navigation.type === 1; // 1 = TYPE_RELOAD
+    }
+
+    // On browser Reload/Refresh (F5/Ctrl+R/swipe), keep user on the exact same tab
+    if (isReload) {
+      const savedTab = sessionStorage.getItem('ef_active_tab');
+      if (savedTab) return savedTab;
+    }
+  } catch (err) {
+    console.warn('Navigation check failed:', err);
+  }
+
+  // On fresh visit / newly opened website, always start on Tournament Overview
+  try {
+    sessionStorage.setItem('ef_active_tab', 'home');
+  } catch (e) {}
+  return 'home';
+};
+
 export default function App() {
-  // Always start on Tournament Overview ('home') when opening the website
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState(getInitialTab);
   const [tournamentStatus, setTournamentStatus] = useState(null);
   const [players, setPlayers] = useState([]);
   const [bracketData, setBracketData] = useState({ 
@@ -33,11 +59,10 @@ export default function App() {
   const [activeScoreMatch, setActiveScoreMatch] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Clear legacy stored tab keys to ensure every fresh launch starts on Overview
+  // Clean legacy localStorage keys
   useEffect(() => {
     localStorage.removeItem('tab_chosen_id');
     localStorage.removeItem('tab_chosen');
-    window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
 
   const navItems = [
@@ -52,6 +77,9 @@ export default function App() {
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
+    try {
+      sessionStorage.setItem('ef_active_tab', tabId);
+    } catch (e) {}
     setIsSidebarOpen(false); // Auto close sidebar on mobile when tab is tapped
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
