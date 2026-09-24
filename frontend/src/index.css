@@ -1009,20 +1009,6 @@ h1, h2, h3, h4, h5, h6 {
   border-color: rgba(0, 229, 255, 0.2);
 }
 
-/* Verified & Paid Player Green Highlight Theme */
-.player-item-card.verified-paid {
-  background: linear-gradient(135deg, rgba(0, 255, 135, 0.08) 0%, rgba(8, 24, 18, 0.78) 100%);
-  border: 1px solid rgba(0, 255, 135, 0.45);
-  box-shadow: 0 4px 18px rgba(0, 255, 135, 0.1), inset 0 0 14px rgba(0, 255, 135, 0.04);
-}
-
-.player-item-card.verified-paid:hover {
-  background: linear-gradient(135deg, rgba(0, 255, 135, 0.14) 0%, rgba(10, 32, 22, 0.88) 100%);
-  border-color: rgba(0, 255, 135, 0.7);
-  box-shadow: 0 6px 24px rgba(0, 255, 135, 0.2);
-  transform: translateY(-1px);
-}
-
 .player-info {
   display: flex;
   align-items: center;
@@ -1043,39 +1029,18 @@ h1, h2, h3, h4, h5, h6 {
   transition: all 0.2s ease;
 }
 
+/* Only Left Green Tick */
 .player-num.verified {
-  background: rgba(0, 255, 135, 0.2);
+  background: rgba(0, 255, 135, 0.18);
   color: #00ff87;
   border: 1px solid rgba(0, 255, 135, 0.5);
-  box-shadow: 0 0 10px rgba(0, 255, 135, 0.35);
+  box-shadow: 0 0 10px rgba(0, 255, 135, 0.3);
   font-weight: 900;
 }
 
 .player-name {
   font-weight: 700;
   font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.player-name.verified {
-  color: #00ff87;
-  text-shadow: 0 0 12px rgba(0, 255, 135, 0.25);
-}
-
-.verified-check-badge {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.62rem;
-  font-weight: 900;
-  letter-spacing: 0.06em;
-  background: #00ff87;
-  color: #050a12;
-  padding: 1px 6px;
-  border-radius: 4px;
-  text-shadow: none;
-  box-shadow: 0 0 8px rgba(0, 255, 135, 0.4);
 }
 
 .player-team {
@@ -1092,12 +1057,6 @@ h1, h2, h3, h4, h5, h6 {
   font-family: monospace;
 }
 
-.player-id-badge.verified {
-  background: rgba(0, 255, 135, 0.14);
-  color: #00ff87;
-  border: 1px solid rgba(0, 255, 135, 0.35);
-}
-
 .player-status-pill {
   display: inline-flex;
   align-items: center;
@@ -1108,12 +1067,12 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 0.02em;
 }
 
+/* Only Right Green Paid & Confirmed Pill */
 .player-status-pill.verified {
-  font-weight: 800;
+  font-weight: 700;
   color: #00ff87;
-  background: rgba(0, 255, 135, 0.16);
-  border: 1px solid rgba(0, 255, 135, 0.45);
-  box-shadow: 0 0 10px rgba(0, 255, 135, 0.2);
+  background: rgba(0, 255, 135, 0.14);
+  border: 1px solid rgba(0, 255, 135, 0.4);
 }
 
 .player-status-pill.pending {

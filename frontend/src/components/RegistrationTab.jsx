@@ -301,19 +301,13 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
                 filteredPlayers.map((player, index) => {
                   const isVerified = player.payment_status === 'verified';
                   return (
-                    <div 
-                      key={player.id} 
-                      className={`player-item-card ${isVerified ? 'verified-paid' : ''}`}
-                    >
+                    <div key={player.id} className="player-item-card">
                       <div className="player-info">
                         <div className={`player-num ${isVerified ? 'verified' : ''}`}>
                           {isVerified ? '✓' : `#${index + 1}`}
                         </div>
                         <div>
-                          <div className={`player-name ${isVerified ? 'verified' : ''}`}>
-                            {player.name}
-                            {isVerified && <span className="verified-check-badge">PAID</span>}
-                          </div>
+                          <div className="player-name">{player.name}</div>
                           <div className="player-team">{player.team_name || 'Dream Team'}</div>
                           {player.group_assigned && (
                             <span style={{ fontSize: '0.72rem', color: 'var(--accent-green)', fontWeight: '700' }}>
@@ -324,7 +318,7 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
                       </div>
 
                       <div style={{ textAlign: 'right' }}>
-                        <div className={`player-id-badge ${isVerified ? 'verified' : ''}`}>
+                        <div className="player-id-badge">
                           {player.efootball_id}
                         </div>
                         <div style={{ marginTop: '5px' }}>
