@@ -60,9 +60,21 @@ export default function HeroBanner({ tournamentStatus, playersCount, onOpenPrize
           <span>Pantihal eFootball Dream Team Cup</span>
         </div>
 
-        <h1 className="hero-title-main">
-          Pantihal eFootball Cup
-        </h1>
+        <div className="hero-title-wrapper">
+          <img 
+            src="/efootball_logo.jpg" 
+            alt="eFootball Logo" 
+            className="hero-heading-logo left" 
+          />
+          <h1 className="hero-title-main">
+            Pantihal eFootball Cup
+          </h1>
+          <img 
+            src="/efootball_logo.jpg" 
+            alt="eFootball Logo" 
+            className="hero-heading-logo right" 
+          />
+        </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', flexWrap: 'wrap', margin: '4px 0 8px' }}>
           <span style={{ color: 'var(--accent-green)', fontWeight: '700', fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
