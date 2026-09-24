@@ -122,11 +122,55 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
     );
   };
 
+const GROUP_THEMES = {
+  A: {
+    name: 'Electric Cyan',
+    color: '#00e5ff',
+    gradient: 'linear-gradient(135deg, rgba(0, 229, 255, 0.14), rgba(6, 20, 36, 0.7))',
+    collapsedGradient: 'linear-gradient(135deg, rgba(0, 229, 255, 0.05), rgba(255, 255, 255, 0.02))',
+    border: 'rgba(0, 229, 255, 0.45)',
+    badgeBg: 'rgba(0, 229, 255, 0.16)',
+    badgeBorder: 'rgba(0, 229, 255, 0.55)',
+    glow: '0 8px 30px rgba(0, 229, 255, 0.14)'
+  },
+  B: {
+    name: 'Emerald Green',
+    color: '#00ff87',
+    gradient: 'linear-gradient(135deg, rgba(0, 255, 135, 0.14), rgba(6, 28, 18, 0.7))',
+    collapsedGradient: 'linear-gradient(135deg, rgba(0, 255, 135, 0.05), rgba(255, 255, 255, 0.02))',
+    border: 'rgba(0, 255, 135, 0.45)',
+    badgeBg: 'rgba(0, 255, 135, 0.16)',
+    badgeBorder: 'rgba(0, 255, 135, 0.55)',
+    glow: '0 8px 30px rgba(0, 255, 135, 0.14)'
+  },
+  C: {
+    name: 'Neon Violet',
+    color: '#b388ff',
+    gradient: 'linear-gradient(135deg, rgba(179, 136, 255, 0.14), rgba(24, 10, 38, 0.7))',
+    collapsedGradient: 'linear-gradient(135deg, rgba(179, 136, 255, 0.05), rgba(255, 255, 255, 0.02))',
+    border: 'rgba(179, 136, 255, 0.45)',
+    badgeBg: 'rgba(179, 136, 255, 0.16)',
+    badgeBorder: 'rgba(179, 136, 255, 0.55)',
+    glow: '0 8px 30px rgba(179, 136, 255, 0.14)'
+  },
+  D: {
+    name: 'Sunset Flame',
+    color: '#ff7043',
+    gradient: 'linear-gradient(135deg, rgba(255, 112, 67, 0.14), rgba(36, 14, 10, 0.7))',
+    collapsedGradient: 'linear-gradient(135deg, rgba(255, 112, 67, 0.05), rgba(255, 255, 255, 0.02))',
+    border: 'rgba(255, 112, 67, 0.45)',
+    badgeBg: 'rgba(255, 112, 67, 0.16)',
+    badgeBorder: 'rgba(255, 112, 67, 0.55)',
+    glow: '0 8px 30px rgba(255, 112, 67, 0.14)'
+  }
+};
+
   // Render individual 8-player group section (A, B, C, D)
   const renderGroupSection = (groupKey) => {
     const group = groups[groupKey];
     if (!group) return null;
     const isCollapsed = openSection !== groupKey;
+    const theme = GROUP_THEMES[groupKey] || GROUP_THEMES.A;
     const winner = group.winner;
     const qfMatches = group.matches?.filter(m => m.round_index === 1) || [];
     const sfMatches = group.matches?.filter(m => m.round_index === 2) || [];
@@ -140,8 +184,8 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
           marginBottom: '20px', 
           padding: 0, 
           overflow: 'hidden',
-          borderColor: isCollapsed ? 'var(--border-color)' : 'rgba(0, 229, 255, 0.4)',
-          boxShadow: isCollapsed ? 'none' : '0 8px 30px rgba(0, 229, 255, 0.08)',
+          borderColor: isCollapsed ? theme.badgeBorder : theme.border,
+          boxShadow: isCollapsed ? 'none' : theme.glow,
           transition: 'all 0.25s ease'
         }}
       >
@@ -154,9 +198,10 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
             justifyContent: 'space-between',
             alignItems: 'center',
             cursor: 'pointer',
-            background: isCollapsed ? 'rgba(255, 255, 255, 0.02)' : 'linear-gradient(135deg, rgba(0, 229, 255, 0.12), rgba(0, 255, 135, 0.05))',
-            borderBottom: isCollapsed ? 'none' : '1px solid rgba(255, 255, 255, 0.08)',
-            userSelect: 'none'
+            background: isCollapsed ? theme.collapsedGradient : theme.gradient,
+            borderBottom: isCollapsed ? 'none' : `1px solid ${theme.badgeBorder}`,
+            userSelect: 'none',
+            transition: 'background 0.25s ease'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
@@ -164,45 +209,50 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
               width: '38px',
               height: '38px',
               borderRadius: '8px',
-              background: isCollapsed ? 'rgba(255, 255, 255, 0.06)' : 'linear-gradient(135deg, rgba(0, 229, 255, 0.25), rgba(0, 255, 135, 0.2))',
-              border: isCollapsed ? '1px solid var(--border-color)' : '1px solid var(--accent-cyan)',
-              color: isCollapsed ? 'var(--text-muted)' : 'var(--accent-cyan)',
+              background: theme.badgeBg,
+              border: `1px solid ${theme.badgeBorder}`,
+              color: theme.color,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: '900',
-              fontSize: '1.15rem'
+              fontSize: '1.15rem',
+              boxShadow: `0 0 12px ${theme.badgeBg}`
             }}>
               {groupKey}
             </div>
             <div>
-              <div style={{ fontSize: '1.12rem', fontWeight: '800', color: isCollapsed ? 'var(--text-main)' : '#fff' }}>
-                Group {groupKey} (8-Player Room)
+              <div style={{ fontSize: '1.12rem', fontWeight: '800', color: isCollapsed ? '#fff' : theme.color, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>Group {groupKey} (8-Player Room)</span>
+                <span style={{ fontSize: '0.7rem', padding: '1px 7px', borderRadius: '4px', background: theme.badgeBg, color: theme.color, border: `1px solid ${theme.badgeBorder}`, fontWeight: '700' }}>
+                  {theme.name}
+                </span>
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                 4 Quarter-Finals → 2 Semi-Finals → 1 Group Final (Winner advances to Final 4)
               </div>
             </div>
             {winner && (
-              <span className="badge badge-live" style={{ marginLeft: '4px' }}>
+              <span className="badge" style={{ marginLeft: '4px', background: theme.badgeBg, color: theme.color, border: `1px solid ${theme.badgeBorder}`, fontWeight: '800' }}>
                 🏆 Winner: {winner.name}
               </span>
             )}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '0.78rem', color: isCollapsed ? 'var(--text-muted)' : 'var(--accent-cyan)', fontWeight: '600' }}>
+            <span style={{ fontSize: '0.78rem', color: theme.color, fontWeight: '700' }}>
               {isCollapsed ? 'Open Room' : 'Collapse'}
             </span>
             <div style={{
               width: '32px',
               height: '32px',
               borderRadius: '6px',
-              background: isCollapsed ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 229, 255, 0.15)',
+              background: theme.badgeBg,
+              border: `1px solid ${theme.badgeBorder}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: isCollapsed ? 'var(--text-muted)' : 'var(--accent-cyan)'
+              color: theme.color
             }}>
               {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
             </div>
@@ -216,7 +266,9 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
               <div className="bracket-container">
                 {/* Round 1: Quarter-Finals (4 matches) */}
                 <div className="bracket-round">
-                  <div className="round-header">Quarter-Finals (4 Matches)</div>
+                  <div className="round-header" style={{ borderColor: theme.badgeBorder, color: theme.color }}>
+                    Quarter-Finals (4 Matches)
+                  </div>
                   <div className="round-matches">
                     {qfMatches.map(m => renderMatchCard(m))}
                   </div>
@@ -224,7 +276,9 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
 
                 {/* Round 2: Semi-Finals (2 matches) */}
                 <div className="bracket-round">
-                  <div className="round-header">Semi-Finals (2 Matches)</div>
+                  <div className="round-header" style={{ borderColor: theme.badgeBorder, color: theme.color }}>
+                    Semi-Finals (2 Matches)
+                  </div>
                   <div className="round-matches">
                     {sfMatches.map(m => renderMatchCard(m))}
                   </div>
@@ -232,7 +286,7 @@ export default function BracketTab({ bracketData, isAdmin, onOpenScoreModal }) {
 
                 {/* Round 3: Group Final (1 match) */}
                 <div className="bracket-round">
-                  <div className="round-header" style={{ borderColor: 'rgba(0, 255, 135, 0.4)' }}>
+                  <div className="round-header" style={{ borderColor: theme.color, color: theme.color, fontWeight: '800' }}>
                     Group Final (To Final 4)
                   </div>
                   <div className="round-matches">

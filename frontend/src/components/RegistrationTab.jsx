@@ -310,7 +310,19 @@ export default function RegistrationTab({ tournamentStatus, players, onPlayerReg
                           <div className="player-name">{player.name}</div>
                           <div className="player-team">{player.team_name || 'Dream Team'}</div>
                           {player.group_assigned && (
-                            <span style={{ fontSize: '0.72rem', color: 'var(--accent-green)', fontWeight: '700' }}>
+                            <span 
+                              style={{ 
+                                fontSize: '0.72rem', 
+                                color: player.group_assigned === 'A' ? '#00e5ff' : player.group_assigned === 'B' ? '#00ff87' : player.group_assigned === 'C' ? '#b388ff' : '#ff7043', 
+                                background: player.group_assigned === 'A' ? 'rgba(0, 229, 255, 0.12)' : player.group_assigned === 'B' ? 'rgba(0, 255, 135, 0.12)' : player.group_assigned === 'C' ? 'rgba(179, 136, 255, 0.12)' : 'rgba(255, 112, 67, 0.12)',
+                                border: `1px solid ${player.group_assigned === 'A' ? 'rgba(0, 229, 255, 0.35)' : player.group_assigned === 'B' ? 'rgba(0, 255, 135, 0.35)' : player.group_assigned === 'C' ? 'rgba(179, 136, 255, 0.35)' : 'rgba(255, 112, 67, 0.35)'}`,
+                                padding: '1px 6px',
+                                borderRadius: '4px',
+                                fontWeight: '700',
+                                display: 'inline-block',
+                                marginTop: '2px'
+                              }}
+                            >
                               Room: Group {player.group_assigned}
                             </span>
                           )}
