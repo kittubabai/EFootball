@@ -46,7 +46,7 @@ export default function PrizesModal({ isOpen, onClose }) {
                 Tournament Prize Pool
               </h3>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                32 Players × ₹100 Entry Fee = <strong style={{ color: 'var(--accent-gold)' }}>₹3,200 Total Collection</strong>
+                32 Players • ₹100 Entry Fee
               </div>
             </div>
           </div>
@@ -71,13 +71,12 @@ export default function PrizesModal({ isOpen, onClose }) {
             <div style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--accent-gold)' }}>₹2,400 Cash Prizes</div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Special Bonus</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--accent-green)' }}>+ ₹200 Golden Boot</div>
+            <div style={{ fontSize: '1.15rem', fontWeight: '800', color: 'var(--accent-green)' }}>+ ₹200 Golden Boot</div>
           </div>
         </div>
 
         {/* Prize Breakdown Cards Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '12px', marginBottom: '20px' }}>
           {/* Room Champions */}
           <div style={{ background: 'rgba(4, 8, 16, 0.75)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(0, 229, 255, 0.35)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.74rem', color: 'var(--accent-cyan)', fontWeight: '800' }}>
@@ -135,18 +134,6 @@ export default function PrizesModal({ isOpen, onClose }) {
             <div style={{ fontSize: '1.3rem', fontWeight: '900', color: 'var(--accent-green)', margin: '4px 0' }}>₹200 Cash Award</div>
             <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
               Awarded to the tournament's highest individual goal scorer!
-            </div>
-          </div>
-
-          {/* Organizer Fund */}
-          <div style={{ background: 'rgba(4, 8, 16, 0.75)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.74rem', color: 'var(--text-dim)', fontWeight: '800' }}>
-              <Shield size={14} />
-              <span>🛡️ ORGANIZER FUND</span>
-            </div>
-            <div style={{ fontSize: '1.3rem', fontWeight: '900', color: 'var(--text-muted)', margin: '4px 0' }}>₹800</div>
-            <div style={{ fontSize: '0.74rem', color: 'var(--text-dim)' }}>
-              Covers match hosting, custom room coordination, and administration.
             </div>
           </div>
         </div>
