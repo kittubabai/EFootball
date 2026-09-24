@@ -1,10 +1,37 @@
-import React from 'react';
-import { Trophy, Clock, Users, Flame, Calendar, IndianRupee, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Trophy, Clock, Users, Flame, Calendar, IndianRupee, Sparkles, Timer } from 'lucide-react';
 
 export default function HeroBanner({ tournamentStatus, playersCount, onOpenPrizes }) {
   const registeredCount = tournamentStatus?.registered_count || playersCount || 0;
   const verifiedCount = tournamentStatus?.verified_count || 0;
   const maxPlayers = tournamentStatus?.max_players || 32;
+
+  // Countdown to 18th October 2026, 11:00 AM IST
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const targetDate = new Date('2026-10-18T11:00:00+05:30').getTime();
+
+    const calculateTime = () => {
+      const now = new Date().getTime();
+      const distance = targetDate - now;
+
+      if (distance > 0) {
+        setTimeLeft({
+          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((distance % (1000 * 60)) / 1000)
+        });
+      } else {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      }
+    };
+
+    calculateTime();
+    const interval = setInterval(calculateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="legends-hero-banner">
@@ -25,7 +52,7 @@ export default function HeroBanner({ tournamentStatus, playersCount, onOpenPrize
       {/* Center: Tournament Information */}
       <div className="hero-center-content">
         <div className="hero-badge-pill">
-          <Flame size={14} color="#00ff87" />
+          <Flame size={14} color="var(--accent-gold)" />
           <span>Pantihal eFootball Dream Team Cup</span>
         </div>
 
@@ -33,7 +60,7 @@ export default function HeroBanner({ tournamentStatus, playersCount, onOpenPrize
           Pantihal eFootball Cup
         </h1>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', flexWrap: 'wrap', margin: '4px 0 10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', flexWrap: 'wrap', margin: '4px 0 8px' }}>
           <span style={{ color: 'var(--accent-green)', fontWeight: '700', fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
             <Calendar size={15} /> 18th October 2026
           </span>
@@ -45,6 +72,26 @@ export default function HeroBanner({ tournamentStatus, playersCount, onOpenPrize
           <span style={{ color: 'var(--accent-gold)', fontWeight: '800', fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '2px' }}>
             <IndianRupee size={14} /> 100 Entry Fee
           </span>
+        </div>
+
+        {/* Live Kickoff Countdown */}
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: 'rgba(0, 0, 0, 0.45)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '999px',
+          padding: '5px 16px',
+          margin: '2px auto 10px',
+          fontSize: '0.82rem',
+          boxShadow: '0 4px 14px rgba(0,0,0,0.35)'
+        }}>
+          <Timer size={14} color="var(--accent-gold)" />
+          <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Kickoff Countdown:</span>
+          <strong style={{ color: '#fff', letterSpacing: '0.04em', fontFamily: 'monospace' }}>
+            {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
+          </strong>
         </div>
 
         <p style={{ color: 'var(--text-muted)', fontSize: '0.86rem', maxWidth: '520px', margin: '0 auto' }}>
