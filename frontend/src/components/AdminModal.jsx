@@ -29,6 +29,9 @@ export default function AdminModal({
   // Player Edit State
   const [editPlayerForm, setEditPlayerForm] = useState(null);
 
+  // Double-check confirmation state for Verify / Unverify / Delete actions
+  const [confirmDialog, setConfirmDialog] = useState(null);
+
   // Certificates State
   const [selectedCertPlayerId, setSelectedCertPlayerId] = useState('');
   const [manualRank, setManualRank] = useState('');
@@ -770,15 +773,31 @@ export default function AdminModal({
                             )}
 
                             {isV ? (
-                              <span style={{ fontSize: '0.72rem', background: 'rgba(0,255,135,0.2)', border: '1px solid rgba(0,255,135,0.45)', color: '#00ff87', padding: '3px 8px', borderRadius: '4px', fontWeight: '800' }}>
-                                ✓ Verified Paid
-                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <span style={{ fontSize: '0.72rem', background: 'rgba(0,255,135,0.18)', border: '1px solid rgba(0,255,135,0.45)', color: '#00ff87', padding: '3px 8px', borderRadius: '4px', fontWeight: '800' }}>
+                                  ✓ Verified Paid
+                                </span>
+                                <button 
+                                  onClick={() => setConfirmDialog({ type: 'unverify', player: p })}
+                                  className="btn btn-outline"
+                                  style={{ 
+                                    padding: '3px 7px', 
+                                    fontSize: '0.7rem', 
+                                    borderColor: 'rgba(255, 190, 11, 0.45)', 
+                                    color: '#ffbe0b',
+                                    background: 'rgba(255, 190, 11, 0.08)' 
+                                  }}
+                                  title="Unverify Payment (Revert to Pending)"
+                                >
+                                  <RotateCcw size={11} /> Unverify
+                                </button>
+                              </div>
                             ) : (
                               <button 
-                                onClick={() => handleVerifyPayment(p.id, 'verified')}
+                                onClick={() => setConfirmDialog({ type: 'verify', player: p })}
                                 className="btn btn-primary"
                                 style={{ padding: '3px 8px', fontSize: '0.72rem' }}
-                                title="Verify ₹100 Payment"
+                                title="Verify ₹100 Payment (Requires Confirmation)"
                               >
                                 <Check size={12} /> Verify ₹100
                               </button>
@@ -800,7 +819,7 @@ export default function AdminModal({
                           </button>
 
                           <button 
-                            onClick={() => handleDeletePlayer(p.id, p.name)}
+                            onClick={() => setConfirmDialog({ type: 'delete', player: p })}
                             style={{ background: 'transparent', border: 'none', color: 'var(--accent-red)', cursor: 'pointer', padding: '4px' }}
                             title="Remove Player"
                           >
@@ -1164,6 +1183,205 @@ export default function AdminModal({
           </div>
         )}
       </div>
+
+      {/* Double Check Confirmation Dialog Modal */}
+      {confirmDialog && (
+        <div 
+          onClick={() => setConfirmDialog(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.78)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10005,
+            padding: '20px'
+          }}
+        >
+          <div 
+            className="glass-card" 
+            onClick={e => e.stopPropagation()} 
+            style={{
+              maxWidth: '460px',
+              width: '100%',
+              padding: '24px',
+              borderRadius: '16px',
+              background: 'rgba(10, 15, 26, 0.96)',
+              border: confirmDialog.type === 'verify' 
+                ? '1px solid rgba(0, 255, 135, 0.55)' 
+                : confirmDialog.type === 'unverify' 
+                ? '1px solid rgba(255, 190, 11, 0.55)' 
+                : '1px solid rgba(244, 63, 94, 0.55)',
+              boxShadow: confirmDialog.type === 'verify'
+                ? '0 16px 48px rgba(0, 255, 135, 0.22)'
+                : confirmDialog.type === 'unverify'
+                ? '0 16px 48px rgba(255, 190, 11, 0.22)'
+                : '0 16px 48px rgba(244, 63, 94, 0.22)',
+              animation: 'modalSlideIn 0.2s ease-out'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+              <div style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                background: confirmDialog.type === 'verify' 
+                  ? 'rgba(0, 255, 135, 0.15)' 
+                  : confirmDialog.type === 'unverify' 
+                  ? 'rgba(255, 190, 11, 0.15)' 
+                  : 'rgba(244, 63, 94, 0.15)',
+                color: confirmDialog.type === 'verify' 
+                  ? '#00ff87' 
+                  : confirmDialog.type === 'unverify' 
+                  ? '#ffbe0b' 
+                  : '#f43f5e'
+              }}>
+                {confirmDialog.type === 'verify' && <CheckCircle2 size={24} />}
+                {confirmDialog.type === 'unverify' && <RotateCcw size={22} />}
+                {confirmDialog.type === 'delete' && <Trash2 size={22} />}
+              </div>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: '900', color: '#fff' }}>
+                  {confirmDialog.type === 'verify' && 'Confirm Payment Verification'}
+                  {confirmDialog.type === 'unverify' && 'Double Check: Unverify Payment?'}
+                  {confirmDialog.type === 'delete' && 'Double Check: Remove Player?'}
+                </h3>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                  Organizer action requires double-check confirmation
+                </div>
+              </div>
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', padding: '14px', borderRadius: '10px', marginBottom: '18px', fontSize: '0.88rem', lineHeight: '1.5' }}>
+              {confirmDialog.type === 'verify' && (
+                <div>
+                  Are you sure you want to mark ₹100 payment as <strong style={{ color: '#00ff87' }}>VERIFIED</strong> for:
+                  <div style={{ color: '#fff', fontWeight: '800', marginTop: '6px', fontSize: '1.05rem' }}>
+                    {confirmDialog.player.name}
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                    eFootball ID: <strong style={{ color: 'var(--accent-cyan)' }}>{confirmDialog.player.efootball_id}</strong> • WA: {confirmDialog.player.whatsapp}
+                  </div>
+                  <div style={{ marginTop: '10px', fontSize: '0.76rem', color: '#00ff87', background: 'rgba(0,255,135,0.08)', padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(0,255,135,0.2)' }}>
+                    ✓ This will grant them 1 of the official 32 tournament spots.
+                  </div>
+                </div>
+              )}
+
+              {confirmDialog.type === 'unverify' && (
+                <div>
+                  Are you sure you want to <strong style={{ color: '#ffbe0b' }}>UNVERIFY</strong> payment for:
+                  <div style={{ color: '#fff', fontWeight: '800', marginTop: '6px', fontSize: '1.05rem' }}>
+                    {confirmDialog.player.name}
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                    eFootball ID: <strong style={{ color: 'var(--accent-cyan)' }}>{confirmDialog.player.efootball_id}</strong> • WA: {confirmDialog.player.whatsapp}
+                  </div>
+                  <div style={{ marginTop: '10px', fontSize: '0.76rem', color: '#ffbe0b', background: 'rgba(255,190,11,0.08)', padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(255,190,11,0.2)' }}>
+                    ⚠️ Their status will revert to <strong>Payment Pending</strong> and their confirmed tournament slot will be released.
+                  </div>
+                </div>
+              )}
+
+              {confirmDialog.type === 'delete' && (
+                <div>
+                  Are you sure you want to permanently <strong style={{ color: '#f43f5e' }}>REMOVE</strong> player:
+                  <div style={{ color: '#fff', fontWeight: '800', marginTop: '6px', fontSize: '1.05rem' }}>
+                    {confirmDialog.player.name}
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)', marginTop: '2px' }}>
+                    eFootball ID: <strong style={{ color: 'var(--accent-cyan)' }}>{confirmDialog.player.efootball_id}</strong>
+                  </div>
+                  <div style={{ marginTop: '10px', fontSize: '0.76rem', color: '#f43f5e', background: 'rgba(244,63,94,0.08)', padding: '6px 10px', borderRadius: '6px', border: '1px solid rgba(244,63,94,0.2)' }}>
+                    🗑️ All registrations, payment records, and goals for this player will be cleared.
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setConfirmDialog(null)}
+                className="btn btn-outline"
+                style={{ padding: '8px 16px', fontSize: '0.84rem' }}
+              >
+                Cancel
+              </button>
+
+              {confirmDialog.type === 'verify' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pid = confirmDialog.player.id;
+                    setConfirmDialog(null);
+                    handleVerifyPayment(pid, 'verified');
+                  }}
+                  className="btn btn-primary"
+                  style={{ padding: '8px 18px', fontSize: '0.84rem', gap: '6px' }}
+                >
+                  <Check size={16} />
+                  <span>Yes, Verify ₹100</span>
+                </button>
+              )}
+
+              {confirmDialog.type === 'unverify' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pid = confirmDialog.player.id;
+                    setConfirmDialog(null);
+                    handleVerifyPayment(pid, 'pending');
+                  }}
+                  className="btn btn-outline"
+                  style={{ 
+                    padding: '8px 18px', 
+                    fontSize: '0.84rem', 
+                    gap: '6px', 
+                    borderColor: 'rgba(255, 190, 11, 0.6)', 
+                    color: '#ffbe0b',
+                    background: 'rgba(255, 190, 11, 0.14)',
+                    fontWeight: '800'
+                  }}
+                >
+                  <RotateCcw size={16} />
+                  <span>Yes, Unverify Payment</span>
+                </button>
+              )}
+
+              {confirmDialog.type === 'delete' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pid = confirmDialog.player.id;
+                    setConfirmDialog(null);
+                    handleDeletePlayer(pid);
+                  }}
+                  className="btn btn-outline"
+                  style={{ 
+                    padding: '8px 18px', 
+                    fontSize: '0.84rem', 
+                    gap: '6px', 
+                    borderColor: 'rgba(244, 63, 94, 0.6)', 
+                    color: '#f43f5e',
+                    background: 'rgba(244, 63, 94, 0.14)',
+                    fontWeight: '800'
+                  }}
+                >
+                  <Trash2 size={16} />
+                  <span>Yes, Delete Player</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Screenshot Preview Modal */}
       {viewScreenshot && (

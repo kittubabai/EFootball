@@ -405,11 +405,21 @@ app.all(['/api/admin/players/:id/verify-payment', '/api/admin/players/:id/paymen
     const updatedCount = await queryGet<{ cnt: string }>("SELECT COUNT(*) as cnt FROM players WHERE status = 'active' AND payment_status = 'verified'");
     const totalVerified = parseInt(String(updatedCount?.cnt || '0'), 10);
 
+    const fullMeta = await queryGet<TournamentMeta>('SELECT max_players, status FROM tournament_meta WHERE id = 1');
+    if (status !== 'verified' && totalVerified < maxPlayers && fullMeta?.status === 'in_progress') {
+      const completedMatches = await queryGet<{ cnt: string }>("SELECT COUNT(*) as cnt FROM matches WHERE status = 'completed' AND player1_score IS NOT NULL AND player2_score IS NOT NULL");
+      if (parseInt(String(completedMatches?.cnt || '0'), 10) === 0) {
+        await queryRun("UPDATE tournament_meta SET status = 'registration' WHERE id = 1");
+      }
+    }
+
     res.json({ 
       success: true, 
-      message: totalVerified >= maxPlayers 
-        ? `Player verified! All ${maxPlayers} tournament slots are now confirmed.` 
-        : `Player payment marked as ${status}. (${totalVerified}/${maxPlayers} slots filled)` 
+      message: status === 'verified'
+        ? (totalVerified >= maxPlayers 
+            ? `Player payment verified! All ${maxPlayers} tournament slots are now confirmed.` 
+            : `Player payment marked as verified. (${totalVerified}/${maxPlayers} slots confirmed)`)
+        : `Player payment UNVERIFIED. Reverted to pending. (${totalVerified}/${maxPlayers} slots confirmed)` 
     });
   } catch (err: any) {
     res.status(500).json({ detail: err.message });
