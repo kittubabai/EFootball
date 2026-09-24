@@ -1,7 +1,7 @@
 import React from 'react';
-import { Trophy, ShieldCheck, Lock, Users, Clock } from 'lucide-react';
+import { Trophy, ShieldCheck, Lock, Users, Clock, Menu } from 'lucide-react';
 
-export default function Navbar({ tournamentStatus, isAdmin, onOpenAdmin }) {
+export default function Navbar({ tournamentStatus, isAdmin, onOpenAdmin, onToggleSidebar }) {
   const getStatusBadge = () => {
     switch (tournamentStatus?.status) {
       case 'in_progress':
@@ -28,12 +28,22 @@ export default function Navbar({ tournamentStatus, isAdmin, onOpenAdmin }) {
   return (
     <header className="header">
       <div className="brand-section">
+        {/* Mobile Sidebar Toggle Button */}
+        <button 
+          type="button" 
+          onClick={onToggleSidebar} 
+          className="mobile-sidebar-toggle"
+          title="Toggle Navigation Menu"
+        >
+          <Menu size={22} />
+        </button>
+
         <div className="brand-logo-badge">
           <Trophy size={26} strokeWidth={2.5} />
         </div>
         <div>
           <div className="brand-sub">eFootball Mobile 2026</div>
-          <h1 className="brand-title">{tournamentStatus?.title || 'Pantihal eFootball Cup 2026'}</h1>
+          <h1 className="brand-title">{tournamentStatus?.title || 'Pantihal eFootball Cup'}</h1>
         </div>
       </div>
 

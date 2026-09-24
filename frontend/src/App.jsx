@@ -30,7 +30,22 @@ export default function App() {
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [showPrizesModal, setShowPrizesModal] = useState(false);
   const [activeScoreMatch, setActiveScoreMatch] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const navItems = [
+    { id: 'register', label: `Register (${players.length})`, icon: UserPlus },
+    { id: 'payment', label: `Pay Fee (₹100) • ${tournamentStatus?.verified_count || 0}/32`, icon: QrCode },
+    { id: 'bracket', label: 'Knockout Bracket', icon: GitFork },
+    { id: 'fixtures', label: 'Fixtures & Results', icon: Calendar },
+    { id: 'scorers', label: 'Top Scorers ⚽ (₹200)', icon: Target },
+    { id: 'rules', label: '14-Min Match Rules', icon: BookOpen }
+  ];
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    localStorage.setItem('tab_chosen', 'true');
+    setIsSidebarOpen(false); // Auto close sidebar on mobile when tab is tapped
+  };
 
   const fetchData = useCallback(async () => {
     try {
@@ -95,138 +110,137 @@ export default function App() {
 
   return (
     <div className="app-container">
-      {/* Top Navigation */}
+      {/* Top Navigation Bar */}
       <Navbar 
         tournamentStatus={tournamentStatus} 
         isAdmin={isAdmin}
         onOpenAdmin={() => setShowAdminModal(true)}
+        onToggleSidebar={() => setIsSidebarOpen(prev => !prev)}
       />
 
-      {/* Messi & Ronaldo eFootball Hero Showcase */}
-      <HeroBanner 
-        tournamentStatus={tournamentStatus}
-        playersCount={players.length}
-        onOpenPrizes={() => setShowPrizesModal(true)}
-      />
+      {/* Main Two-Column Layout (Left Navigation Sidebar + Content Area) */}
+      <div className="layout-with-sidebar">
+        {/* Mobile Backdrop Overlay */}
+        {isSidebarOpen && (
+          <div 
+            className="sidebar-backdrop" 
+            onClick={() => setIsSidebarOpen(false)}
+            aria-hidden="true"
+          />
+        )}
 
-      {/* Champion Banner if finished */}
-      {champion && (
-        <div className="glass-card" style={{ 
-          marginBottom: '24px', 
-          background: 'linear-gradient(135deg, rgba(255, 190, 11, 0.15), rgba(0, 255, 135, 0.15))', 
-          borderColor: 'rgba(255, 190, 11, 0.4)',
-          textAlign: 'center',
-          padding: '24px'
-        }}>
-          <Trophy size={42} color="#ffbe0b" style={{ display: 'inline-block', marginBottom: '8px' }} />
-          <h2 style={{ fontSize: '1.6rem', color: '#ffbe0b', fontWeight: '900' }}>
-            🎉 TOURNAMENT CHAMPION: {champion.name} 🎉
-          </h2>
-          <div style={{ color: 'var(--text-main)', marginTop: '4px', fontSize: '1.05rem' }}>
-            Team: <strong>{champion.team_name || 'Dream Team'}</strong> • eFootball ID: <code>{champion.efootball_id}</code>
+        {/* Left Navigation Sidebar */}
+        <aside className={`left-sidebar ${isSidebarOpen ? 'open' : ''}`}>
+          <div className="sidebar-header">
+            <span className="sidebar-title">Tournament Navigation</span>
+            <button 
+              type="button" 
+              className="sidebar-close-btn" 
+              onClick={() => setIsSidebarOpen(false)}
+              title="Close Navigation"
+            >
+              ✕
+            </button>
           </div>
+
+          <nav className="sidebar-nav-list">
+            {navItems.map(item => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
+                  onClick={() => handleTabChange(item.id)}
+                >
+                  <Icon size={18} className="sidebar-nav-icon" />
+                  <span className="sidebar-nav-label">{item.label}</span>
+                  {isActive && <div className="active-indicator" />}
+                </button>
+              );
+            })}
+          </nav>
+        </aside>
+
+        {/* Right Main Body Content */}
+        <div className="main-content-column">
+          {/* Messi & Ronaldo eFootball Hero Showcase */}
+          <HeroBanner 
+            tournamentStatus={tournamentStatus}
+            playersCount={players.length}
+            onOpenPrizes={() => setShowPrizesModal(true)}
+          />
+
+          {/* Champion Banner if finished */}
+          {champion && (
+            <div className="glass-card" style={{ 
+              marginBottom: '24px', 
+              background: 'linear-gradient(135deg, rgba(255, 190, 11, 0.15), rgba(0, 255, 135, 0.15))', 
+              borderColor: 'rgba(255, 190, 11, 0.4)',
+              textAlign: 'center',
+              padding: '24px'
+            }}>
+              <Trophy size={42} color="#ffbe0b" style={{ display: 'inline-block', marginBottom: '8px' }} />
+              <h2 style={{ fontSize: '1.6rem', color: '#ffbe0b', fontWeight: '900' }}>
+                🎉 TOURNAMENT CHAMPION: {champion.name} 🎉
+              </h2>
+              <div style={{ color: 'var(--text-main)', marginTop: '4px', fontSize: '1.05rem' }}>
+                Team: <strong>{champion.team_name || 'Dream Team'}</strong> • eFootball ID: <code>{champion.efootball_id}</code>
+              </div>
+            </div>
+          )}
+
+          {/* Tab Views */}
+          <main style={{ flexGrow: 1 }}>
+            {activeTab === 'register' && (
+              <RegistrationTab 
+                tournamentStatus={tournamentStatus}
+                players={players}
+                onPlayerRegistered={fetchData}
+                onSwitchToPayment={() => handleTabChange('payment')}
+              />
+            )}
+
+            {activeTab === 'payment' && (
+              <PaymentTab 
+                tournamentStatus={tournamentStatus}
+                players={players}
+                onPaymentSubmitted={fetchData}
+                onSwitchToRegister={() => handleTabChange('register')}
+              />
+            )}
+
+            {activeTab === 'bracket' && (
+              <BracketTab 
+                bracketData={bracketData}
+                isAdmin={isAdmin}
+                onOpenScoreModal={(match) => setActiveScoreMatch(match)}
+              />
+            )}
+
+            {activeTab === 'fixtures' && (
+              <FixturesTab 
+                matches={matches}
+                isAdmin={isAdmin}
+                onOpenScoreModal={(match) => setActiveScoreMatch(match)}
+              />
+            )}
+
+            {activeTab === 'scorers' && (
+              <TopScorersTab 
+                isAdmin={isAdmin}
+                adminPin={adminPin}
+                onScoreUpdated={fetchData}
+              />
+            )}
+
+            {activeTab === 'rules' && (
+              <RulesTab />
+            )}
+          </main>
         </div>
-      )}
-
-      {/* Navigation Tabs */}
-      <nav className="tabs-nav">
-        <button 
-          className={`tab-btn ${activeTab === 'register' ? 'active' : ''}`}
-          onClick={() => { setActiveTab('register'); localStorage.setItem('tab_chosen', 'true'); }}
-        >
-          <UserPlus size={16} />
-          <span>Register ({players.length})</span>
-        </button>
-
-        <button 
-          className={`tab-btn ${activeTab === 'payment' ? 'active' : ''}`}
-          onClick={() => { setActiveTab('payment'); localStorage.setItem('tab_chosen', 'true'); }}
-        >
-          <QrCode size={16} />
-          <span>Pay Fee (₹100) • {tournamentStatus?.verified_count || 0}/32</span>
-        </button>
-
-        <button 
-          className={`tab-btn ${activeTab === 'bracket' ? 'active' : ''}`}
-          onClick={() => { setActiveTab('bracket'); localStorage.setItem('tab_chosen', 'true'); }}
-        >
-          <GitFork size={16} />
-          <span>Knockout Bracket</span>
-        </button>
-
-        <button 
-          className={`tab-btn ${activeTab === 'fixtures' ? 'active' : ''}`}
-          onClick={() => { setActiveTab('fixtures'); localStorage.setItem('tab_chosen', 'true'); }}
-        >
-          <Calendar size={16} />
-          <span>Fixtures & Results</span>
-        </button>
-
-        <button 
-          className={`tab-btn ${activeTab === 'scorers' ? 'active' : ''}`}
-          onClick={() => { setActiveTab('scorers'); localStorage.setItem('tab_chosen', 'true'); }}
-        >
-          <Target size={16} />
-          <span>Top Scorers ⚽ (₹200)</span>
-        </button>
-
-        <button 
-          className={`tab-btn ${activeTab === 'rules' ? 'active' : ''}`}
-          onClick={() => { setActiveTab('rules'); localStorage.setItem('tab_chosen', 'true'); }}
-        >
-          <BookOpen size={16} />
-          <span>14-Min Match Rules</span>
-        </button>
-      </nav>
-
-      {/* Main Content Area */}
-      <main style={{ flexGrow: 1 }}>
-        {activeTab === 'register' && (
-          <RegistrationTab 
-            tournamentStatus={tournamentStatus}
-            players={players}
-            onPlayerRegistered={fetchData}
-            onSwitchToPayment={() => { setActiveTab('payment'); localStorage.setItem('tab_chosen', 'true'); }}
-          />
-        )}
-
-        {activeTab === 'payment' && (
-          <PaymentTab 
-            tournamentStatus={tournamentStatus}
-            players={players}
-            onPaymentSubmitted={fetchData}
-            onSwitchToRegister={() => { setActiveTab('register'); localStorage.setItem('tab_chosen', 'true'); }}
-          />
-        )}
-
-        {activeTab === 'bracket' && (
-          <BracketTab 
-            bracketData={bracketData}
-            isAdmin={isAdmin}
-            onOpenScoreModal={(match) => setActiveScoreMatch(match)}
-          />
-        )}
-
-        {activeTab === 'fixtures' && (
-          <FixturesTab 
-            matches={matches}
-            isAdmin={isAdmin}
-            onOpenScoreModal={(match) => setActiveScoreMatch(match)}
-          />
-        )}
-
-        {activeTab === 'scorers' && (
-          <TopScorersTab 
-            isAdmin={isAdmin}
-            adminPin={adminPin}
-            onScoreUpdated={fetchData}
-          />
-        )}
-
-        {activeTab === 'rules' && (
-          <RulesTab />
-        )}
-      </main>
+      </div>
 
       {/* Admin Management Modal */}
       <AdminModal 
