@@ -56,22 +56,18 @@ export default function PrizesModal({ isOpen, onClose }) {
         {/* Prize Pool Summary Badges */}
         <div style={{ 
           display: 'flex', 
-          justifyContent: 'space-between', 
+          justifyContent: 'center', 
           alignItems: 'center', 
+          textAlign: 'center',
           background: 'linear-gradient(135deg, rgba(255, 190, 11, 0.12), rgba(0, 255, 135, 0.08))', 
           border: '1px solid rgba(255, 190, 11, 0.35)', 
           padding: '12px 16px', 
           borderRadius: '10px', 
-          marginBottom: '20px',
-          flexWrap: 'wrap',
-          gap: '8px'
+          marginBottom: '20px'
         }}>
           <div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Prize Money</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--accent-gold)' }}>₹2,400 Cash Prizes</div>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '1.15rem', fontWeight: '800', color: 'var(--accent-green)' }}>+ ₹200 Golden Boot</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Tournament Prize Pool</div>
+            <div style={{ fontSize: '1.45rem', fontWeight: '900', color: 'var(--accent-gold)' }}>₹2,400 Cash Prizes</div>
           </div>
         </div>
 
