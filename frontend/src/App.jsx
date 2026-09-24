@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Home, UserPlus, GitFork, Calendar, BookOpen, Trophy, QrCode, Target } from 'lucide-react';
+import { Home, UserPlus, GitFork, Calendar, BookOpen, Trophy, QrCode, Target, PhoneCall, Phone, MessageSquare } from 'lucide-react';
 
 import Navbar from './components/Navbar';
 import HeroBanner from './components/HeroBanner';
@@ -162,6 +162,38 @@ export default function App() {
               );
             })}
           </nav>
+
+          {/* Organizer Help & Support Section */}
+          <div className="sidebar-contacts-card">
+            <div className="sidebar-contacts-header">
+              <PhoneCall size={13} />
+              <span>Organizer Support</span>
+            </div>
+
+            <div className="sidebar-contact-item">
+              <div className="sidebar-contact-name">Sukamal Malick</div>
+              <div className="sidebar-contact-actions">
+                <a href="tel:7076962130" className="sidebar-contact-btn call" title="Call Sukamal">
+                  <Phone size={12} /> 7076962130
+                </a>
+                <a href="https://wa.me/917076962130" target="_blank" rel="noreferrer" className="sidebar-contact-btn wa" title="WhatsApp Sukamal">
+                  <MessageSquare size={12} />
+                </a>
+              </div>
+            </div>
+
+            <div className="sidebar-contact-item">
+              <div className="sidebar-contact-name">Soumojit Nandi</div>
+              <div className="sidebar-contact-actions">
+                <a href="tel:8348082759" className="sidebar-contact-btn call" title="Call Soumojit">
+                  <Phone size={12} /> 8348082759
+                </a>
+                <a href="https://wa.me/918348082759" target="_blank" rel="noreferrer" className="sidebar-contact-btn wa" title="WhatsApp Soumojit">
+                  <MessageSquare size={12} />
+                </a>
+              </div>
+            </div>
+          </div>
         </aside>
 
         {/* Right Main Body Content */}

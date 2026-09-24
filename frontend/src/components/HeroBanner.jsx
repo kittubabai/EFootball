@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, Clock, Users, Flame, Calendar, IndianRupee, Sparkles, Timer } from 'lucide-react';
+import { Trophy, Clock, Users, Flame, Calendar, IndianRupee, Sparkles, Timer, PhoneCall } from 'lucide-react';
 
 export default function HeroBanner({ tournamentStatus, playersCount, onOpenPrizes, onNavigate }) {
   const registeredCount = tournamentStatus?.registered_count || playersCount || 0;
@@ -141,23 +141,39 @@ export default function HeroBanner({ tournamentStatus, playersCount, onOpenPrize
 
         {/* Quick Action Buttons for Home View */}
         {onNavigate && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '16px', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={() => onNavigate('register')}
-              className="btn btn-primary"
-              style={{ padding: '10px 22px', fontSize: '0.92rem' }}
-            >
-              <span>Register Now</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigate('payment')}
-              className="btn btn-outline"
-              style={{ padding: '10px 20px', fontSize: '0.92rem', borderColor: 'rgba(229,185,76,0.4)', color: 'var(--accent-gold)' }}
-            >
-              <span>Pay Entry Fee (₹100)</span>
-            </button>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '16px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => onNavigate('register')}
+                className="btn btn-primary"
+                style={{ padding: '10px 22px', fontSize: '0.92rem' }}
+              >
+                <span>Register Now</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate('payment')}
+                className="btn btn-outline"
+                style={{ padding: '10px 20px', fontSize: '0.92rem', borderColor: 'rgba(229,185,76,0.4)', color: 'var(--accent-gold)' }}
+              >
+                <span>Pay Entry Fee (₹100)</span>
+              </button>
+            </div>
+
+            {/* Organizer Helpline Contacts */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '12px', flexWrap: 'wrap', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              <span style={{ color: 'var(--accent-gold)', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <PhoneCall size={12} /> Helpline:
+              </span>
+              <a href="tel:7076962130" style={{ color: '#fff', textDecoration: 'none', background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.12)' }} title="Call Sukamal Malick">
+                Sukamal: <strong>7076962130</strong>
+              </a>
+              <span style={{ color: 'var(--text-dim)' }}>•</span>
+              <a href="tel:8348082759" style={{ color: '#fff', textDecoration: 'none', background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.12)' }} title="Call Soumojit Nandi">
+                Soumojit: <strong>8348082759</strong>
+              </a>
+            </div>
           </div>
         )}
       </div>

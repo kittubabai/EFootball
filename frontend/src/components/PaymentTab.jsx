@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { QrCode, Copy, Check, IndianRupee, ShieldCheck, CheckCircle2, AlertCircle, ArrowRight, UploadCloud, Image as ImageIcon, X } from 'lucide-react';
+import { QrCode, Copy, Check, IndianRupee, ShieldCheck, CheckCircle2, AlertCircle, ArrowRight, UploadCloud, Image as ImageIcon, X, PhoneCall, Phone, MessageSquare } from 'lucide-react';
 
 export default function PaymentTab({ tournamentStatus, players, onPaymentSubmitted, onSwitchToRegister }) {
   const [selectedPlayerId, setSelectedPlayerId] = useState('');
@@ -299,8 +299,41 @@ export default function PaymentTab({ tournamentStatus, players, onPaymentSubmitt
             </form>
           )}
 
-          <div style={{ marginTop: '20px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '14px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            <strong>Organizer Contact:</strong> You can also send your payment receipt directly to Sayantan on WhatsApp.
+          <div style={{ marginTop: '20px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px' }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: '800', color: 'var(--accent-gold)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <PhoneCall size={14} /> Need Help or Instant Verification? Contact Organizers:
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '8px' }}>
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: '0.84rem', fontWeight: '700', color: '#fff' }}>Sukamal Malick</div>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--accent-cyan)' }}>7076962130</div>
+                </div>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <a href="tel:7076962130" className="btn btn-outline" style={{ padding: '6px 10px', fontSize: '0.76rem', gap: '4px' }} title="Call Sukamal">
+                    <Phone size={12} /> Call
+                  </a>
+                  <a href="https://wa.me/917076962130" target="_blank" rel="noreferrer" className="btn btn-primary" style={{ padding: '6px 10px', fontSize: '0.76rem', background: '#25D366', borderColor: '#25D366', gap: '4px' }} title="WhatsApp Sukamal">
+                    <MessageSquare size={12} /> WhatsApp
+                  </a>
+                </div>
+              </div>
+
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: '0.84rem', fontWeight: '700', color: '#fff' }}>Soumojit Nandi</div>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--accent-cyan)' }}>8348082759</div>
+                </div>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <a href="tel:8348082759" className="btn btn-outline" style={{ padding: '6px 10px', fontSize: '0.76rem', gap: '4px' }} title="Call Soumojit">
+                    <Phone size={12} /> Call
+                  </a>
+                  <a href="https://wa.me/918348082759" target="_blank" rel="noreferrer" className="btn btn-primary" style={{ padding: '6px 10px', fontSize: '0.76rem', background: '#25D366', borderColor: '#25D366', gap: '4px' }} title="WhatsApp Soumojit">
+                    <MessageSquare size={12} /> WhatsApp
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

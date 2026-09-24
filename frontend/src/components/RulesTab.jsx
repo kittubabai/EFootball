@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, ShieldAlert, CheckCircle, Smartphone, Calendar, Clock, Trophy, IndianRupee, Users, Sparkles, Zap } from 'lucide-react';
+import { BookOpen, ShieldAlert, CheckCircle, Smartphone, Calendar, Clock, Trophy, IndianRupee, Users, Sparkles, Zap, PhoneCall, Phone, MessageSquare } from 'lucide-react';
 
 export default function RulesTab() {
   return (
@@ -157,6 +157,48 @@ export default function RulesTab() {
           <div>
             <strong style={{ color: '#fff' }}>4. Screenshot Reporting:</strong>
             <p>Both players must capture a screenshot of the full-time score screen and share it in the group or with the admin team for official bracket progression.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Organizing Committee & Helpline */}
+      <div className="glass-card" style={{ marginTop: '24px', borderColor: 'rgba(0, 229, 255, 0.3)' }}>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: '800', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-cyan)' }}>
+          <PhoneCall size={20} />
+          Organizing Committee & Helpline
+        </h3>
+        <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', marginBottom: '14px' }}>
+          For match queries, room coordinates, or payment confirmation, contact our tournament coordinators:
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#fff' }}>Sukamal Malick</div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--accent-cyan)' }}>Coordinator • 7076962130</div>
+            </div>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <a href="tel:7076962130" className="btn btn-outline" style={{ padding: '6px 10px', fontSize: '0.76rem', gap: '4px' }} title="Call Sukamal">
+                <Phone size={12} /> Call
+              </a>
+              <a href="https://wa.me/917076962130" target="_blank" rel="noreferrer" className="btn btn-primary" style={{ padding: '6px 10px', fontSize: '0.76rem', background: '#25D366', borderColor: '#25D366', gap: '4px' }} title="WhatsApp Sukamal">
+                <MessageSquare size={12} /> WhatsApp
+              </a>
+            </div>
+          </div>
+
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#fff' }}>Soumojit Nandi</div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--accent-cyan)' }}>Coordinator • 8348082759</div>
+            </div>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <a href="tel:8348082759" className="btn btn-outline" style={{ padding: '6px 10px', fontSize: '0.76rem', gap: '4px' }} title="Call Soumojit">
+                <Phone size={12} /> Call
+              </a>
+              <a href="https://wa.me/918348082759" target="_blank" rel="noreferrer" className="btn btn-primary" style={{ padding: '6px 10px', fontSize: '0.76rem', background: '#25D366', borderColor: '#25D366', gap: '4px' }} title="WhatsApp Soumojit">
+                <MessageSquare size={12} /> WhatsApp
+              </a>
+            </div>
           </div>
         </div>
       </div>

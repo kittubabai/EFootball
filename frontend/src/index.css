@@ -492,6 +492,84 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 0 8px var(--accent-gold);
 }
 
+/* Sidebar Contacts Card */
+.sidebar-contacts-card {
+  margin-top: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(0, 229, 255, 0.22);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sidebar-contacts-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-cyan);
+}
+
+.sidebar-contact-item {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar-contact-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.sidebar-contact-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.sidebar-contact-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.sidebar-contact-btn.call {
+  background: rgba(0, 229, 255, 0.12);
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  color: var(--accent-cyan);
+}
+.sidebar-contact-btn.call:hover {
+  background: rgba(0, 229, 255, 0.25);
+  color: #ffffff;
+}
+
+.sidebar-contact-btn.wa {
+  background: rgba(37, 211, 102, 0.16);
+  border: 1px solid rgba(37, 211, 102, 0.45);
+  color: #25D366;
+}
+.sidebar-contact-btn.wa:hover {
+  background: rgba(37, 211, 102, 0.3);
+  color: #ffffff;
+}
+
 .main-content-column {
   min-width: 0; /* Prevents grid breakout */
 }
